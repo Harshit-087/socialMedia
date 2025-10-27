@@ -118,7 +118,7 @@ export default function Posts({userid}:{userid:string}) {
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
-              onClick={(e:any) => e.stopPropagation()}
+              onClick={(e:React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
               className="w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl"
             >
               <ImageComponent

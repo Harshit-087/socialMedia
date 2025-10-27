@@ -23,3 +23,4 @@ export const store = configureStore({
 
 // for rehydrating from localstorage , creates the persistor and handles rehydration
 export const persistor = persistStore(store);
+export type RootState = ReturnType<typeof store.getState>

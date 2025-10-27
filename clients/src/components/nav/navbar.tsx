@@ -11,6 +11,38 @@ import { userQuery } from "@/app/api/userQuery";
 import { followQuery } from "@/app/api/followQuery";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import {AxiosResponse} from "axios"
+
+
+export interface FollowResponse {
+  
+  msg: string;                        // "followed"
+  data: {
+    _id: string;
+    followId: string;
+    userId: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+}
+  
+
+export interface ApiError {
+  response?: {
+    data?: {
+      msg?: string;
+      error?: string;
+    };
+    status?: number;
+  };
+  message?: string;
+}
+
+
+interface FollowVariables {
+  userId: string;
+  accountId: string;
+}
 
 export default function Navbar() {
   const [searchUser, setSearchUser] = useState<string>("");
@@ -33,22 +65,18 @@ export default function Navbar() {
 
   const handleAccount = () => setLoading(!loading);
 
-  const followMutation = useMutation({
-    mutationFn: async ({
-      userId,
-      accountId,
-    }: {
-      userId: string;
-      accountId: string;
-    }) => {
-      if(userId ===accountId) return;
+  const followMutation = useMutation<AxiosResponse<FollowResponse>, ApiError, FollowVariables>({
+    mutationFn: async ({ userId, accountId }: FollowVariables) => {
+      if (userId === accountId) {
+        throw new Error("Cannot follow yourself");
+      }
       return await followQuery.follow(userId, accountId);
     },
-    onSuccess: (res: any) => {
-      toast.success(res.data.msg);
+    onSuccess: (res: AxiosResponse<FollowResponse>) => {
+      toast.success(res.data?.msg);
       console.log("followed successfully", res);
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       console.log("error in following", err);
     },
   });
@@ -91,7 +119,7 @@ export default function Navbar() {
                   <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-blue-100 hover:ring-blue-300 transition-all duration-300">
                     {data[0]?.profileImage ? (
                       <Image
-                        src={data[0]?.profileImage!}
+                        src={data[0]?.profileImage}
                         alt={data[0]?.username || "user"}
                         fill
                         className="object-cover"

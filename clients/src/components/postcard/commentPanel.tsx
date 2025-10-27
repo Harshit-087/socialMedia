@@ -11,10 +11,34 @@ import {useUser} from "@/hooks/userhook"
 import {useQueryClient} from "@tanstack/react-query"
 import Comments from "./comments"
 import toast from "react-hot-toast"
+import {ApiError} from "../auth/loginCard"
+import {AxiosResponse} from "axios"
 
 interface props{
     close:()=>void;
     data:string;
+}
+
+
+type CommentVariables={
+    value:string,
+    userId:string,
+    data:string
+}
+
+type CommentResponse={
+    response?:{
+        data?:{
+            msg?:string,
+            data?:{
+                  userId:string,
+        postId:string,
+        Data:string,
+        parentId:string |null,
+            }
+        },
+        status:string
+    }
 }
 
 export default function CommentPanel({close,data}:props){
@@ -38,16 +62,16 @@ export default function CommentPanel({close,data}:props){
 
 
     // creating comments on post ..
-    const commentMutation = useMutation({
-        mutationFn:async({value,userId,data}:{value:string,userId:string,data:string})=>{
+    const commentMutation = useMutation<AxiosResponse<CommentResponse>,ApiError,CommentVariables>({
+        mutationFn:async({value,userId,data}:CommentVariables)=>{
             return await commentQuery.createComment(value,userId,data);
         },
-        onSuccess:(res:any)=>{
+        onSuccess:(res:AxiosResponse<CommentResponse>)=>{
             console.log("created comment success",res);
             queryClient.invalidateQueries({queryKey:["comments"]});
 
         },
-        onError:(err:any)=>{
+        onError:(err:ApiError)=>{
             console.log("error in creating comment ",err)
         }
     })

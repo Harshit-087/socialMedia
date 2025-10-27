@@ -6,6 +6,7 @@ import mongoose from "mongoose"
 export const createLike= async(req,res)=>{
     const {userId,Url} = req.body;
     // console.log("body parser",userId ,likeImageUrl)
+    try{
 
     const findUser = await User.findOne({_id:userId});
     if(!findUser) return res.status(400).json({msg:"no user exist"});
@@ -19,11 +20,16 @@ export const createLike= async(req,res)=>{
     })
 
     return res.json({msg:"like successfully",data: likeCreated});
+   }catch(err){
+    return res.status(500).json({msg:"server error in liking",error:err.message})
+   }
     
 }
 
 export const deleteLike = async(req,res)=>{
     const {userId,url} = req.body;
+
+    try{
    
     const findPost = await Post.findOne({media:{$elemMatch:{url:url}}});
     if (!findPost) {
@@ -37,7 +43,9 @@ export const deleteLike = async(req,res)=>{
 
     return res.json({msg:"delete like doc  successfully"})
 
-    
+    }catch(err){
+    return res.status(500).json({msg:"server error in liking",error:err.message})
+   }
     
 }
 
@@ -66,8 +74,12 @@ export const getLikes= async(req,res)=>{
 
 export const myLikes= async(req,res)=>{
     const {userId} = req.query;
+    try{
     const fetchedMyLikes= await Like.find({ userId })
     .populate("userId","username email profileImage")
 
     return res.json({msg:"all your like images",data:fetchedMyLikes})
+    }catch(err){
+    return res.status(500).json({msg:"server error in liking",error:err.message})
+   }
 }

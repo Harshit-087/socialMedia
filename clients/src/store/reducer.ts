@@ -11,7 +11,7 @@ export interface userState{
     website:string,
     bio:string,
     token:string,
-    posts:any[]
+    
 }
 
 const initialState:userState={
@@ -25,7 +25,7 @@ const initialState:userState={
     website:"",
     bio:"",
     token:"",
-    posts:[],
+ 
 }
 
 const userSlice = createSlice({
@@ -106,12 +106,12 @@ const userSlice = createSlice({
            }
         }
     },
-      uploadImage:(state,action)=>{
-        console.log("action payload in reducer",action.payload)
-            state.posts.push(action.payload)
-      }
+      // uploadImage:(state,action)=>{
+      //   console.log("action payload in reducer",action.payload)
+      //       state.posts.push(action.payload)
+      // }
     }
 })
 
-export const {addLogin,addSignup,addLogout,loginFromStorage,uploadImage} = userSlice.actions;
+export const {addLogin,addSignup,addLogout,loginFromStorage} = userSlice.actions;
 export default userSlice.reducer;

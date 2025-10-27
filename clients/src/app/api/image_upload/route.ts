@@ -11,9 +11,13 @@ cloudinary.config({
   secure: true
 });
 
-interface cloudinaryUploadResponse{
-  public_id:string,
-  [key:string]:any
+interface CloudinaryUploadResponse {
+  public_id: string;
+  secure_url: string;
+  url: string;
+  format: string;
+  width: number;
+  height: number;
 }
 
 export async function POST(request: NextRequest){
@@ -53,7 +57,7 @@ export async function POST(request: NextRequest){
 
    try{
 
- const result =  await new Promise<cloudinaryUploadResponse>(
+ const result =  await new Promise<CloudinaryUploadResponse>(
         (resolve,reject)=>{
           
       const uploadImage =  cloudinary.uploader.upload_stream(
@@ -62,7 +66,7 @@ export async function POST(request: NextRequest){
               if(error){
                 reject(error)
               }
-              else resolve(result as cloudinaryUploadResponse)
+              else resolve(result as CloudinaryUploadResponse)
             }
            )
 
@@ -106,17 +110,27 @@ console.log("Backend response:", backendResponse.data);
 
 
       return NextResponse.json({publicId:result.public_id,url:result.secure_url},{status:200})
-    } catch (error: any) {
+    } catch (error) {
+      const err  = error as{      
+    message?: string;
+    name?: string;
+    response?: {
+      data?: unknown;
+      status?: number;
+    };
+    http_code?: number;
+  };
+      
   console.error("UPLOAD ERROR:", {
-    message: error?.message,
-    name: error?.name,
-    response: error?.response?.data,
-    status: error?.response?.status,
-    cloudinary: !!error?.http_code, // helps detect Cloudinary errors
+    message: err?.message,
+    name: err?.name,
+    response: err?.response?.data,
+    status: err?.response?.status,
+    cloudinary: !!err?.http_code, // helps detect Cloudinary errors
   });
 
   return NextResponse.json(
-    { error: "failed to upload image", details: error?.message },
+    { error: "failed to upload image", details: err?.message },
     { status: 500 }
   );
 }

@@ -4,7 +4,7 @@ import {useState,useEffect} from "react"
 import axios from "axios"
 import {useUser} from "@/hooks/userhook"
 import {useDispatch} from "react-redux"
-import {uploadImage} from "@/store/reducer"
+// import {uploadImage} from "@/store/reducer"
 import {postQuery} from "@/app/api/postQuery"
 import {useMutation} from "@tanstack/react-query"
 import imagecompression from "browser-image-compression"
@@ -67,7 +67,7 @@ const queryClient = useQueryClient();
          formData.append("pictures", compressedFile);
          formData.append("caption",caption.value)
         
-          dispatch(uploadImage(file.name))
+          // dispatch(uploadImage(file.name))
           uploadMutation.mutate({ data: formData, userId, token })
        
      

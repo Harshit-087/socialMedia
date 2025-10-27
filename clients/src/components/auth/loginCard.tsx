@@ -7,12 +7,29 @@ import { useDispatch } from "react-redux";
 import { userQuery, Data } from "@/app/api/userQuery";
 import { addLogin } from "@/store/reducer";
 import toast from "react-hot-toast"
+import {AxiosResponse} from "axios"
+import Link from "next/link";
 
-export interface LoginResult {
+
+interface LoginResponse {
   msg: string;
   token: string;
-  email: string;
-  name: string;
+  user: {
+    _id: string;
+    username: string;
+    email: string;
+    profileImage?: string;
+  };
+}
+
+export interface ApiError {
+  response?:{
+    data?: {
+      msg?: string;
+    };
+    status?: number;
+  };
+message?:string;
 }
 
 export default function CardDemo() {
@@ -27,21 +44,23 @@ export default function CardDemo() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Mutation for login
-  const loginMutation = useMutation({
-    mutationFn: async (data: Data) => await userQuery.login(data),
-    onSuccess: (res) => {
+    const loginMutation = useMutation<AxiosResponse<LoginResponse>, ApiError, Data>({
+      mutationFn: async (data: Data) => {
+        return await userQuery.login(data);
+      },
+      onSuccess: (res: AxiosResponse<LoginResponse>) => {
         setLoading(false);
-       toast.success(res.data.msg)
-      dispatch(addLogin(res.data));
-      router.push("/account/dashboard");
-    },
-    onError: (err: any) => {
-       toast.error(err.data.msg)
-      setErrorMsg(err?.response?.data?.msg || "Login failed");
-      setLoading(false);
-    },
-    retry:false
-  });
+        toast.success(res.data.msg);
+        dispatch(addLogin(res.data));
+        router.push("/account/dashboard");
+      },
+      onError: (err: ApiError) => {
+        toast.error(err?.response?.data?.msg || err?.message || "An error occurred");
+        setErrorMsg(err?.response?.data?.msg || "Login failed");
+        setLoading(false);
+      },
+      retry: false,
+    });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -101,9 +120,9 @@ export default function CardDemo() {
     </form>
 
     <div className="mt-4 text-center">
-      <a href="#" className="text-sm text-blue-600 hover:underline">
+      <Link href="#" className="text-sm text-blue-600 hover:underline">
         Forgot your password?
-      </a>
+      </Link>
     </div>
 
     <div className="mt-6 flex justify-center gap-4">

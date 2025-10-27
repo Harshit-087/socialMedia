@@ -68,7 +68,7 @@ export default function ImageComponent({ props }: ImageProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
-            onClick={(e:any) => e.stopPropagation()}
+            onClick={(e:React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
             <div className="relative w-full h-auto max-h-[90vh] flex justify-center">
               <Image
