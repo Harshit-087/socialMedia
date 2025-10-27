@@ -133,9 +133,9 @@ export default function CardDemo() {
 
     <div className="mt-6 text-center text-sm text-gray-500">
       Don&apos;t have an account?{" "}
-      <a href="/account/signup" className="text-blue-600 hover:underline">
+      <Link href="/account/signup" className="text-blue-600 hover:underline">
         Sign Up
-      </a>
+      </Link>
     </div>
   </div>
 </div>
