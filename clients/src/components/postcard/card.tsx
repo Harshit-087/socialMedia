@@ -12,13 +12,14 @@ import {postQuery} from "@/app/api/postQuery"
 import toast from "react-hot-toast"
 import {AxiosResponse} from "axios"
 import {ApiError} from "../auth/loginCard"
+import Link from "next/link";
 
 export type MediaItem={ 
   url:string; type?:string; position?:number }
 
  export type PostType={ 
   _id: string; 
-  userId: { username: string; profileImage: string; };
+  userId: { username: string; profileImage: string; _id:string};
   caption:string;
   media: MediaItem[]; createdAt: string; }
 
@@ -69,7 +70,7 @@ export default function PostCard() {
   const [likesOnPost,setLikesOnPost] = useState<{[key:string]:number}>({})
   const [openComment,setOpenComment] = useState<boolean>(false);
   const [commentForPost,setCommentForPost]=useState<string>();
-  const date = new Date();
+
 
   //using useQueryclient invalidateQueries.
   //for rehydrating the cache ... after mutation
@@ -83,7 +84,8 @@ export default function PostCard() {
   } = useQuery({
     queryKey: ["posts",token],
     queryFn: async ({ queryKey }) => { 
-      const [_,token]=queryKey;
+      const [_,token]=queryKey as [string ,string|undefined];
+      if(!token) throw new Error("cannot find token");
       const res = await postQuery.peoplePosts(token);
        toast.success("posts")
       return res.data?.data || [];
@@ -237,8 +239,8 @@ export default function PostCard() {
             />
           </div>
           <div>
-            <p className="font-medium text-sm text-white">{img.userId.username || "User"}</p>
-            <p className="text-xs text-white/80">@{img.userId.username || "username"}</p>
+           <Link href={`/account/${img.userId.username}?id=${img.userId._id}`}> <p className="font-medium text-sm text-white">{img.userId.username || "User"}</p></Link>
+           <Link href=""> <p className="text-xs text-white/80">@{img.userId.username || "username"}</p></Link>
           </div>
         </div>
         <EllipsisVertical className="text-white" />

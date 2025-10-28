@@ -1,10 +1,10 @@
 import Post from "../models/post.schema.js"
 import User from "../models/user.schema.js" 
 
-export const updateSchema = async(req,res)=>{
+export const createPost = async(req,res)=>{
     try{
     const {userId,publicId,url,caption} = req.body;
-    console.log("url",req.body.url)
+    console.log("url",req.body)
     // return res.json({msg:"reached schema"})
 
     const findUser = await User.findOne({_id:userId})
@@ -13,9 +13,10 @@ export const updateSchema = async(req,res)=>{
     const savedPost = await Post.create({
      userId,
     caption,
-     media:[{url, position:0, mediaType: "image"}]
+     media:[{publicId,url, position:0, mediaType: "image"}]
     })
     console.log("post created",savedPost)
+    console.dir(JSON.stringify(savedPost,null,2))
     return res.status(200).json({msg:"post created",data:savedPost})
 
 }catch(err){
@@ -29,7 +30,7 @@ export const showPosts = async(req,res)=>{
         const {userId} =req.query
         console.log("showpost userId",userId)
         if(!userId) return res.status(400).json({msg:"userId is required"})
-        const posts= await Post.find({userId}).populate("userId","username profileImage")
+        const posts= await Post.find({userId}).populate("userId","username profileImage _id")
 
     // for media array to show ..
     //JSON.stringify(value, replacer, space)
@@ -51,3 +52,13 @@ export const allPost=async(req,res)=>{
 }
 
 
+export const deletePost=async(req,res)=>{
+    const {publicId} = req.body;
+
+  try{
+    const deletedpost =await Post.deleteOne({media:{$elemMatch:{publicId}}});
+    return res.status(200).json({msg:"deleted successfully"}) 
+  }catch(err){
+    return res.status(500).json({msg:"server error in deleting post"})
+  }
+}

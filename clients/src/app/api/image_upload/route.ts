@@ -36,9 +36,6 @@ export async function POST(request: NextRequest){
     }
 
   
-     
-
-
      // for uploading file to cloudinary 
      // 1. convert to arraybuffer
      // 2. convert arraybuffer to buffer 
@@ -135,4 +132,44 @@ console.log("Backend response:", backendResponse.data);
   );
 }
 
+}
+
+
+
+export async function DELETE(request:Request){
+
+  const {searchParams} = new URL(request.url);
+  const public_id = searchParams.get("publicId")
+ const token  =searchParams.get("token")
+
+
+  // const {public_id} = await request.json()
+
+  if(!public_id){
+    return NextResponse.json({error:"public_id is required"},{status:400})
+  }
+
+  try{
+    const deleteCloudinaryPost = await cloudinary.uploader.destroy(public_id)
+
+    const backendResponse = await axios.delete(`${process.env.BACKEND_URL}/post-api/post`,{
+      headers:{
+        "content-type":"application/json",
+        Authorization:`Bearer ${token}`
+      },
+      data:{
+        publicId:public_id
+      }
+    })
+       
+        
+  console.log("backend response",backendResponse)
+   
+
+    // NextResponse.json(body, init?)
+  
+    return NextResponse.json({success:true,deleteCloudinaryPost})
+  }catch(err){
+    return NextResponse.json({error:"delete failed"},{status:500})
+  }
 }

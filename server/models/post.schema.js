@@ -19,7 +19,8 @@ const postSchema = new mongoose.Schema({
         // media is an array of subdocuments. Define an explicit schema for each media item.
         media: [
             new mongoose.Schema(
-                {
+                {  
+                    publicId:{type:String},
                     url: { type: String },
                     // Use a different key name to avoid confusion with Mongoose's `type` shortcut
                     mediaType: { type: String }, // "image" || "video"

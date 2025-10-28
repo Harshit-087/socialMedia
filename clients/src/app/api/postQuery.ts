@@ -22,4 +22,8 @@ export const postQuery= {
           data.append("token",token)
         return await axios.post("/api/image_upload", data )
     },
+    deletePost:async(publicId:string,token:string)=>{
+        // send image as query param to match axios.delete signature
+        return await axios.delete("/api/image_upload", { params: { publicId ,token } })
+    }
 }

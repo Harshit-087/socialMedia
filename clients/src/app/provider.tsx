@@ -18,7 +18,7 @@ export default function TanProvider({children}:{children:React.ReactNode}){
           
         {children}
         <Toaster 
-            position="top-right"
+            position="top-center"
             toastOptions={{
               success: {style:{background:"green",color:"white"}},
               error:{style:{background:"red",color:"white"}}

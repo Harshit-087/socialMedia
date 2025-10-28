@@ -17,7 +17,7 @@ import toast from "react-hot-toast"
 
 export default function Profile() {
   const [showPosts, setShowPosts] = useState(true);   
-  const { bio, profileImage,userId } = useUser();
+  const {userId } = useUser();
   const queryClient = useQueryClient();
 
   const {name}=useParams();
@@ -108,6 +108,9 @@ export default function Profile() {
               </div>
             ))}
           </div>
+          {(userId!==id)?
+          <div className="w-72 my-2 p-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-500 ">follow</div>
+          :null }
         </section>
 
         {/* Navigation Tabs */}
