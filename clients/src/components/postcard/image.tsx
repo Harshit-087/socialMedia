@@ -72,7 +72,7 @@ export default function ImageComponent({ props }: ImageProps) {
             className="absolute top-6 right-6 flex items-center gap-4 z-10"
             onClick={(e) => e.stopPropagation()}
           >
-         <div className="relative inline-block">
+         <div className="max-md:relative inline-block">
   {/* Toggle button */}
   <button
     onClick={() => setOpen(!open)}

@@ -63,7 +63,7 @@ export default function Posts({userid}:{userid:string}) {
 
   return (
     <>
-      <section className="w-full flex flex-col bg-gradient-to-b from-zinc-950 to-zinc-900 text-white pb-20 px-4">
+      <section className="w-full flex flex-col  text-white pb-20 px-4">
         {/* Header Bar */}
         <div className="flex justify-between items-center mt-6 bg-zinc-800/70 backdrop-blur-sm rounded-xl px-5 py-3 border border-zinc-700 shadow-md">
           <h2 className="text-lg font-semibold">Create a new post</h2>
@@ -83,7 +83,7 @@ export default function Posts({userid}:{userid:string}) {
               <motion.button
                 key={idx}
                 onClick={() => handleImage(idx)}
-                className="relative overflow-hidden rounded-xl group shadow-md hover:shadow-lg transition-all duration-300"
+                className="max-md:relative overflow-hidden rounded-xl group shadow-md hover:shadow-lg transition-all duration-300"
                 whileHover={{ scale: 1.03 }}
               >
                 <Image

@@ -10,19 +10,19 @@ export default function Footer() {
   ];
 
   return (
-    <div className="w-full h-[60px] fixed bottom-0 bg-white/90 backdrop-blur-md shadow-t-lg border-t border-gray-200">
-      <ul className="w-full h-full flex justify-around items-center">
+   
+      <ul className="w-full h-full flex justify-around items-center lg:flex-col ">
         {navItems.map((item, idx) => (
-          <Link key={idx} href={item.href} className="group flex flex-col items-center justify-center h-full w-full transition-all">
+          <Link key={idx} href={item.href} className="group flex flex-col lg:flex-row lg:gap-2 lg:my-2 lg:px-2 items-center max-md:justify-center h-full w-full transition-all">
             <span className="p-2 rounded-full group-hover:bg-gradient-to-tr from-purple-500 via-pink-500 to-red-500 text-gray-600 group-hover:text-white transition-all duration-300">
               {item.icon}
             </span>
-            <span className="text-xs mt-1 text-gray-600 group-hover:text-gray-900 font-medium">
+            <span className="text-xs lg:text-lg mt-1 text-gray-600 group-hover:text-purple-500 hover:font-bold">
               {item.name}
             </span>
           </Link>
         ))}
       </ul>
-    </div>
+    
   );
 }

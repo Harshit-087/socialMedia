@@ -35,7 +35,14 @@ export const userQuery={
     },
     fetchProfile:async(id:string)=>{
         return await axiosInstance.get("/user-api/profile",{params:{id}})
-    }
+    },
     
-    //user follower
+    
+    editProfile:async(name:string,email:string,bio:string,website:string)=>{
+        return await axiosInstance.post("/user-api/editProfile",{name,email,bio,website},{
+            headers:{
+                "content-type":"multipart/form-data"
+            }
+        })
+    }
 }

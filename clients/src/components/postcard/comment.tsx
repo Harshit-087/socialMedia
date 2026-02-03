@@ -42,7 +42,7 @@ export default function CommentText({ handle }: HandleProps) {
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {/* Avatar */}
-      <div className="w-12 h-12 relative rounded-full overflow-hidden border border-zinc-700 flex-shrink-0">
+      <div className="w-12 h-12 max-md:relative rounded-full overflow-hidden border border-zinc-700 flex-shrink-0">
         <Image
           src={profileImage || "/default-avatar.png"}
           alt={username || "User"}

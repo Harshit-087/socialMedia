@@ -1,15 +1,9 @@
-import {v2 as cloudinary} from "cloudinary"
+import cloudinary from "@/lib/cloudinary"
 
 import {NextRequest, NextResponse} from "next/server";
 import axios from "axios"
 
-// Return "https" URLs by setting secure: true
-cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUD_NAME,
-    api_key: process.env.API_KEY_CLOUDINARY,
-    api_secret: process.env.API_SECRET_CLOUDINARY,
-  secure: true
-});
+
 
 interface CloudinaryUploadResponse {
   public_id: string;

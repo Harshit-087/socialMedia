@@ -8,6 +8,7 @@ import postRouter from "./post.router.js"
 import commentRouter from "./comments.router.js"
 import followRouter from "./follow.router.js"
 import {Register,Signin} from "../controllers/user.controller.js"
+import videoRouter from "./video.router.js"
 
 import dotenv from "dotenv"
 dotenv.config()
@@ -17,6 +18,7 @@ const router= express.Router()
 router.use(express.json({limit:"10mb"}))
 router.use(express.urlencoded({limit:"10mb",extended:true}))
 
+router.use("/uploads",express.static("uploads"))
 
 
 router.post("/register",Register)
@@ -33,5 +35,6 @@ router.use("/follow-api",followRouter)
 
 router.use("/post-api",postRouter)
 
+router.use("/video-api",videoRouter)
 export default router
 

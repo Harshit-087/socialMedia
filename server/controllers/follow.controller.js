@@ -69,3 +69,25 @@ export const followers = async(req,res)=>{
         return res.status(500).json({msg:"internal server error",error:error.message})
     }
 }
+
+export const followersAccounts = async(req,res)=>{
+    const {id} = req.query;
+    try{
+        const followerAccounts = await Follower.find({userId:id}).populate("followerId","profileImage username _id")
+        return res.status(200).json({msg:"fetched follower accounts",data:followerAccounts})
+    }catch(error){
+        console.log("error in fetching follower accounts",error)
+        return res.status(500).json({msg:"internal server error",error:error.message})
+    }
+}
+
+export const followedAccounts = async(req,res)=>{
+    const {id} = req.query;
+    try{
+        const followedAccounts = await Follow.find({userId:id}).populate("followId","profileImage username _id")
+        return res.status(200).json({msg:"fetched followed accounts",data:followedAccounts})
+    }catch(error){
+        console.log("error in fetching followed accounts",error)
+        return res.status(500).json({msg:"internal server error",error:error.message})
+    }
+}

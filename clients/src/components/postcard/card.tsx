@@ -13,6 +13,8 @@ import toast from "react-hot-toast"
 import {AxiosResponse} from "axios"
 import {ApiError} from "../auth/loginCard"
 import Link from "next/link";
+import {videoQuery} from "@/app/api/videoQuery"
+import {VideoItem} from "../video/videos"
 
 export type MediaItem={ 
   url:string; type?:string; position?:number }
@@ -63,6 +65,11 @@ interface MyLikesResponse {
   data: MyLike[];
 }
 
+
+  type feedItem =
+  |{kind:"post",data:PostType}
+  |{kind:"video",data:VideoItem};
+
 export default function PostCard() {
   const {userId ,token}=useUser()
  // rather then using index , use postid beacuse . on maping index changes but  like remian at index  .
@@ -70,7 +77,7 @@ export default function PostCard() {
   const [likesOnPost,setLikesOnPost] = useState<{[key:string]:number}>({})
   const [openComment,setOpenComment] = useState<boolean>(false);
   const [commentForPost,setCommentForPost]=useState<string>();
-
+  
 
   //using useQueryclient invalidateQueries.
   //for rehydrating the cache ... after mutation
@@ -92,6 +99,17 @@ export default function PostCard() {
     },
     enabled: !!userId, //  Only runs when userId is ready
   });
+
+  //fetching video from cache ..
+   const {data:videos = [], isLoading, error} = useQuery<VideoItem[], Error>({
+     queryKey:["videos",userId],
+     queryFn:async({queryKey})=>{
+         const [ , id] =queryKey as [string,string|undefined]
+         if(!id) return [];
+         const res = await videoQuery.fetchUserVideos(id);
+         return res.data.data;
+     }
+   })
 
 
   // making like ...//
@@ -220,9 +238,17 @@ export default function PostCard() {
   }
 
 
+
+
+  const combinedFeed:feedItem[]=[
+    ...post.map((p:PostType)=>({kind:"post",data:p})),
+    ...videos.map((v:VideoItem)=>({kind:"video",data:v}))
+  ]
+
+
   return (
    <div className="flex flex-col items-center gap-6 py-6">
-  {post.map((img: PostType, index: number) => (
+  {combinedFeed.map((item:feedItem,index:number) => (
     <div
       key={index}
       className="w-[90%] bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50 rounded-2xl shadow-lg flex flex-col overflow-hidden"
@@ -231,39 +257,44 @@ export default function PostCard() {
       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md">
-            <Image
-              src={img.userId.profileImage || "/images/qunt.jpg"}
+
+           <Image
+              src={ item.data.userId.profileImage || "/images/qunt.jpg"}
               alt="profile"
               fill
               className="object-cover"
             />
           </div>
           <div>
-           <Link href={`/account/${img.userId.username}?id=${img.userId._id}`}> <p className="font-medium text-sm text-white">{img.userId.username || "User"}</p></Link>
-           <Link href=""> <p className="text-xs text-white/80">@{img.userId.username || "username"}</p></Link>
+           <Link href={`/account/${ item.data.userId.username}?id=${item.data.userId._id}`}> <p className="font-medium text-sm text-white">{item.kind==="post"? item.data.userId.username : item.data.userId.username || "User"}</p></Link>
+           <Link href=""> <p className="text-xs text-white/80">@{ item.data.userId.username || "username"}</p></Link>
           </div>
         </div>
         <EllipsisVertical className="text-white" />
       </div>
 
       {/* Post image */}
-      <div className="w-full relative">
-        <Image
-          src={img.media[0]?.url}
+      <div className="w-full max-md:relative">
+      {/* checking for video or img  */}
+       {item.kind==="post" ? 
+       <Image
+          src={item.data.media[0]?.url || "/placeholder.png"}
           alt="post"
-          width={600}
-          height={600}
-          className="w-full h-auto object-cover"
+          width={400}
+          height={400}
+          className="w-full max-h-96 object-cover"
         />
+       : <video src={item.data.url} controls autoPlay className="object-contain border-2 border-gray-400  w-full max-h-96"/>
+       } 
       </div>
 
       {/* Caption */}
       <div className="px-4 py-3 border-t border-gray-200 bg-white">
         <p className="text-sm text-gray-800 whitespace-normal break-words leading-relaxed">
-          <span className="font-semibold text-gray-900 mr-2">@{img.userId.username || "user"}</span>
-          <span className="text-gray-500"> {formatDistanceToNow(new Date(img.createdAt))} ago </span>
+          <span className="font-semibold text-gray-900 mr-2">@{ item.data.userId.username || "user"}</span>
+          <span className="text-gray-500"> {formatDistanceToNow(new Date( item.data.createdAt ))} ago </span>
           <br />
-          {img.caption || "hello"}
+          {item.kind==="post"? item.data.caption : item.data.caption || "hello"}
         </p>
       </div>
 
@@ -271,10 +302,10 @@ export default function PostCard() {
       <div className="flex justify-around items-center py-3 bg-gray-50">
         <div className="flex gap-2 items-center">
           <Heart
-            onClick={() => handleLike(img._id, index)}
-            className={likedImage[img._id] ? "text-red-600" : "text-gray-600 hover:text-red-500 transition-colors"}
+            onClick={() => handleLike(item.kind==="post"? item.data._id : item.data.publicId, index)}
+            className={likedImage[item.kind==="post"? item.data._id : item.data.publicId] ? "text-red-600" : "text-gray-600 hover:text-red-500 transition-colors"}
           />
-          <p className="text-gray-700">{likesOnPost[img._id] ? formatLikes(likesOnPost[img._id]) : 0}</p>
+          <p className="text-gray-700">{likesOnPost[item.kind==="post"? item.data._id : item.data.publicId] ? formatLikes(likesOnPost[item.kind==="post"? item.data._id : item.data.publicId]) : 0}</p>
         </div>
 
         <MessageCircle className="text-blue-600 hover:text-blue-500 transition-colors" onClick={() => handleCommentPanel(index)} />

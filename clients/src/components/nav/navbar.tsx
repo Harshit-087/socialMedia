@@ -11,7 +11,22 @@ import { userQuery } from "@/app/api/userQuery";
 import { followQuery } from "@/app/api/followQuery";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import {AxiosResponse} from "axios"
+import { AxiosResponse } from "axios";
+import { motion } from "framer-motion";
+import { MoveLeft } from "lucide-react";
+
+export interface userInfo{ 
+    _id:string,
+    username:string,
+    role:string,
+    email:string,
+    isPrivate:boolean,
+    profileImage:string,
+    website:string,
+    bio:string,
+   
+    
+}
 
 
 export interface FollowResponse {
@@ -44,11 +59,14 @@ interface FollowVariables {
   accountId: string;
 }
 
+
+
+
 export default function Navbar() {
   const [searchUser, setSearchUser] = useState<string>("");
   const [open, setOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
-
+   const [pop,setPop] = useState<boolean>(false)
   const { username, userId, profileImage } = useUser();
   const dispatch = useDispatch();
 
@@ -81,34 +99,117 @@ export default function Navbar() {
     },
   });
 
+  const handlePopUp=()=>{
+    setPop(true);
+}
+
   return (
     <>
-      <div className="w-full h-16 flex items-center justify-between px-4 bg-gray-800 shadow-md relative">
+      <div className="max-w-[1200px] h-16 flex items-center justify-between bg-gray-800 shadow-md max-md:relative px-2 md:px-6  md:h-16  mx-auto">
         {/* Logo */}
-        <div className="flex items-center gap-3 relative">
+        <div className="flex w-64  items-center  gap-3 relative md:gap-10 lg:flex-[0.85] lg:gap-36">
+         
           <Image
             src="/images/brand.jpg"
             alt="Bezal"
-            width={40}
-            height={40}
-            className="object-contain rounded-lg bg-blue-200"
+           width={56}
+          height={16}
+            className="object-contain rounded-lg lg:ml-10"
           />
+          
 
           {/* Search Box */}
-          <div className="relative">
+          <div>
             <input
-              type="text"
-              value={searchUser}
-              onChange={(e) => {
-                const { value } = e.target;
-                setSearchUser(value);
-                setOpen(value.length > 0);
-              }}
+              
+              onClick={handlePopUp}
               placeholder="Search here..."
-              className="w-48 md:w-80 text-white bg-gray-700 h-10 px-3 rounded-lg border-none shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm placeholder-gray-300"
+              className="w-48 md:w-96 text-white bg-gray-700 h-10 px-3 rounded-lg border-none lg:w-[550px]  shadow-md  focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm placeholder-gray-300"
             />
 
-            {/* Search Result Dropdown */}
+            {pop && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-5 flex flex-col items-center justify-start bg-black/70 backdrop-blur-md p-6"
+  >
+    {/* Header Bar */}
+    <div className="flex items-center w-full max-w-xl mt-10 bg-gray-800/80 rounded-full px-4 py-2 shadow-lg ring-1 ring-gray-700">
+      {/* Back / Close Button */}
+      <button
+        onClick={() => {
+          setPop(false);
+          setSearchUser("");
+        }}
+        className="p-2 rounded-full hover:bg-gray-700 transition">
+        <MoveLeft className="text-gray-300 w-5 h-5" />
+      </button>
+
+      {/* Search Input */}
+      <input
+        type="text"
+        value={searchUser}
+        onChange={(e) => {
+          const { value } = e.target;
+          setSearchUser(value);
+          setOpen(value.length > 0);
+        }}
+        placeholder="Search users..."
+        className="flex-1 bg-transparent text-gray-200 placeholder-gray-400 px-3 text-lg focus:outline-none"
+      />
+    </div>
+
+    {/* User List */}
+    {data && (
+      <div className="w-full flex flex-col items-center gap-4 p-4">
+        {data.map((user: userInfo, idx: number) => (
+          <Link href ={`/account/${user.username}?id=${user._id}`} >
+          <div
+            key={idx}
+            className="w-full max-w-md bg-gradient-to-br from-gray-800 to-gray-700 text-white rounded-2xl shadow-lg flex items-center p-4 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl ">
+            {/* Profile Image */}
+            <div className="flex-shrink-0">
+              <div className="relative w-24 aspect-square rounded-full overflow-hidden ring-2 ring-blue-500">
+                <Image
+                  src={user.profileImage}
+                  alt={user.username || "user"}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
+
+            {/* User Info */}
+            <div className="flex flex-col justify-center px-4 w-full">
+              <h2 className="text-lg font-semibold capitalize">{user.username}</h2>
+              <p className="text-sm text-gray-300">Suggested for you</p>
+
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (userId === user._id) return;
+                  followMutation.mutate({
+                    userId,
+                    accountId: user._id,
+                  });
+                }}
+                className="mt-2 w-24 bg-blue-600 text-white py-1.5 text-sm rounded-full shadow-md hover:bg-blue-500 active:scale-95 transition-all duration-200"
+              >
+                Follow
+              </button>
+            </div>
+            
+          </div>
+          </Link>
+        ))}
+      </div>
+    )}
+  </motion.div>
+)}
+
+
+            {/* Search Result Dropdown
             {open && data && data.length > 0 && (
               <div className="absolute top-full left-0 w-56 bg-white shadow-xl rounded-2xl border border-gray-200 mt-2 p-3 flex items-center gap-3 z-20 transition-all duration-200 ease-out hover:shadow-2xl">
                 <Link
@@ -116,7 +217,7 @@ export default function Navbar() {
                   className="flex items-center gap-3 w-full"
                   onClick={() => setOpen(false)}
                 >
-                  <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-blue-100 hover:ring-blue-300 transition-all duration-300">
+                  <div className="max-md:relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-blue-100 hover:ring-blue-300 transition-all duration-300">
                     {data[0]?.profileImage ? (
                       <Image
                         src={data[0]?.profileImage}
@@ -151,24 +252,24 @@ export default function Navbar() {
                   </div>
                 </Link>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
         {/* Right Side Icons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-6 lg:ml-16 lg:flex-[0.15]">
           <Bell
             size={24}
             className="text-white hover:text-blue-400 cursor-pointer transition-colors"
           />
 
           {username ? (
-            <div className="relative">
+            <div className="max-md:relative">
               <button
                 onClick={handleAccount}
                 className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-700 transition-colors"
               >
-                <p className="text-white text-sm font-medium truncate">
+                <p className="text-white text-sm font-medium truncate hidden md:block">
                   {username}
                 </p>
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
@@ -184,7 +285,7 @@ export default function Navbar() {
 
               {/* Dropdown Menu */}
               <div
-                className={`absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
+                className={`absolute max-sm:right-0 mt-2 w-36 max-md:right-5 lg:top-24 lg:-translate-9 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
                   loading ? "max-h-60" : "max-h-0 overflow-hidden"
                 }`}
               >
@@ -199,8 +300,8 @@ export default function Navbar() {
                       dispatch(addLogout());
                       window.location.reload();
                     }}
-                  >
-                    <li className="px-2 py-2 hover:bg-gray-100 cursor-pointer">
+                    className="flex self-start">
+                    <li className="px-4 py-2  hover:bg-gray-100 cursor-pointer">
                       Logout
                     </li>
                   </button>

@@ -14,5 +14,11 @@ export const followQuery={
 
     followers:async(userid:string)=>{
         return await axiosInstance.get("/follow-api/followers",{params:{userid}})
+    },
+    fetchFollowerAccounts:async(id:string)=>{
+          return await axiosInstance.get("/follow-api/followersAccounts",{params:{id}})
+    },
+    fetchFollowingAccounts:async(id:string)=>{
+        return await axiosInstance.get("/follow-api/followingAccounts",{params:{id}})
     }
 }
