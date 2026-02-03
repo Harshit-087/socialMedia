@@ -43,7 +43,7 @@ export default function EditProfile(){
         setFormData(prev=>({...prev,[name]:value}))
     }
 
-    const handleSubmit=(e:any)=>{
+    const handleSubmit=(e:React.FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
         //handle form submission logic here
         editProfileMutation.mutate(formData);

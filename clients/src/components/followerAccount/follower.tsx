@@ -36,10 +36,10 @@ export default function FollowerAccount({
 
         {/* List */}
         <div className="flex-1 overflow-y-auto">
-          {followerAccount.map((items, index) => (
-            <Link href={`/account/${items.followerId?.username}?id=${items.followerId._id}`}>
+          {followerAccount.map((items, index:number) => (
+            <Link key={index} href={`/account/${items.followerId?.username}?id=${items.followerId._id}`}>
             <div
-              key={items.followerId._id ?? index}
+              key={ index}
               className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100 transition"
             >
               {/* Avatar */}

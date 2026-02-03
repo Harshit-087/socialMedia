@@ -164,7 +164,7 @@ export default function Navbar() {
     {data && (
       <div className="w-full flex flex-col items-center gap-4 p-4">
         {data.map((user: userInfo, idx: number) => (
-          <Link href ={`/account/${user.username}?id=${user._id}`} >
+          <Link key={idx} href ={`/account/${user.username}?id=${user._id}`} >
           <div
             key={idx}
             className="w-full max-w-md bg-gradient-to-br from-gray-800 to-gray-700 text-white rounded-2xl shadow-lg flex items-center p-4 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl ">
