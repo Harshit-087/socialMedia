@@ -3,11 +3,11 @@ import { X } from "lucide-react"
 import Link from "next/link"
 
 export type followerAccount = {
-  followerId: {
+ 
     profileImage: string
     username: string
     _id: string
-  }
+  
 }
 
 export default function FollowerAccount({
@@ -35,9 +35,11 @@ export default function FollowerAccount({
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto">
-          {followerAccount.map((items, index:number) => (
-            <Link key={index} href={`/account/${items.followerId?.username}?id=${items.followerId._id}`}>
+        {followerAccount.length ===0 ?
+        <p>no account to show</p>
+      :(<div className="flex-1 overflow-y-auto">
+          {followerAccount.map((items:followerAccount, index:number) => (
+            <Link key={index} href={`/account/${items.username}?id=${items._id}`}>
             <div
               key={ index}
               className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100 transition"
@@ -45,7 +47,7 @@ export default function FollowerAccount({
               {/* Avatar */}
               <div className="relative w-11 h-11 rounded-full overflow-hidden">
                 <Image
-                  src={items.followerId.profileImage}
+                  src={items.profileImage || "/images/user.png"}
                   alt="profile"
                   fill
                   className="object-cover"
@@ -54,14 +56,15 @@ export default function FollowerAccount({
 
               {/* Username */}
               <p className="text-sm font-medium">
-                {items.followerId.username}
+                {items.username}
               </p>
 
               <button className="px-3 py-1 bg-blue-500 text-white rounded-xl ml-auto">Message</button>
             </div>
             </Link>
           ))}
-        </div>
+        </div>)}
+        
       </div>
     </div>
   )

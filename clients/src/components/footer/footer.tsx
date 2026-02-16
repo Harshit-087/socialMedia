@@ -4,9 +4,9 @@ import Link from "next/link";
 export default function Footer() {
   const navItems = [
     { name: "Home", icon: <House />, href: "/account/dashboard" },
-    { name: "Chat", icon: <MessagesSquare />, href: "/chat" },
-    { name: "Group", icon: <Users />, href: "/community" },
-    { name: "Settings", icon: <Cog />, href: "/setting" },
+    { name: "Chat", icon: <MessagesSquare />, href: "/account/chat" },
+    { name: "Group", icon: <Users />, href: "/account/community" },
+    { name: "Settings", icon: <Cog />, href: "/account/setting" },
   ];
 
   return (

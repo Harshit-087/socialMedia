@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState ,useEffect,useRef} from "react";
 import Image from "next/image";
 import { Bell } from "lucide-react";
 import Link from "next/link";
@@ -14,6 +14,10 @@ import toast from "react-hot-toast";
 import { AxiosResponse } from "axios";
 import { motion } from "framer-motion";
 import { MoveLeft } from "lucide-react";
+import {useQueryClient} from "@tanstack/react-query"
+import {useRouter } from "next/navigation"
+
+
 
 export interface userInfo{ 
     _id:string,
@@ -54,7 +58,7 @@ export interface ApiError {
 }
 
 
-interface FollowVariables {
+export interface FollowVariables {
   userId: string;
   accountId: string;
 }
@@ -70,6 +74,11 @@ export default function Navbar() {
   const { username, userId, profileImage } = useUser();
   const dispatch = useDispatch();
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const queryclient=  useQueryClient();
+  const router = useRouter()
+
   const { data } = useQuery({
     queryKey: ["searchUser", searchUser],
     queryFn: async ({ queryKey }) => {
@@ -80,6 +89,19 @@ export default function Navbar() {
     },
     enabled: searchUser.length > 0,
   });
+
+   const{data:following=[],isLoading:followLoading,error:followError}=useQuery({
+    queryKey:["follow",userId],
+    queryFn:async({queryKey})=>{
+       const [,userId]=queryKey as [string, string|undefined ];
+       if(!userId) return ;
+       const res= await followQuery.following(userId)
+      //  toast.success(res.data.msg)
+       return res.data.data;
+    }
+  })
+
+  const isFollowing = following.some((f:{ followId:string})=>f.followId ===data?._id)
 
   const handleAccount = () => setLoading(!loading);
 
@@ -93,6 +115,8 @@ export default function Navbar() {
     onSuccess: (res: AxiosResponse<FollowResponse>) => {
       toast.success(res.data?.msg);
       console.log("followed successfully", res);
+      queryclient.invalidateQueries({queryKey:["follow",userId]})
+     
     },
     onError: (err: ApiError) => {
       console.log("error in following", err);
@@ -101,7 +125,21 @@ export default function Navbar() {
 
   const handlePopUp=()=>{
     setPop(true);
-}
+} 
+
+ useEffect(()=>{
+  if(pop) {
+   inputRef.current?.focus()
+  }
+ },[pop])
+
+useEffect (()=>{
+  if(!Array.isArray(data)) return ; 
+
+  if( data.length===1  &&    data[0]._id === userId){
+   router.push(`/account/${data[0].username}?id=${data[0]._id}`)
+  }
+},[data,router])
 
   return (
     <>
@@ -117,7 +155,7 @@ export default function Navbar() {
             className="object-contain rounded-lg lg:ml-10"
           />
           
-
+ 
           {/* Search Box */}
           <div>
             <input
@@ -148,6 +186,7 @@ export default function Navbar() {
 
       {/* Search Input */}
       <input
+      ref={inputRef}
         type="text"
         value={searchUser}
         onChange={(e) => {
@@ -181,15 +220,18 @@ export default function Navbar() {
             </div>
 
             {/* User Info */}
-            <div className="flex flex-col justify-center px-4 w-full">
+            {user._id !=userId ? (
+              <div className="flex flex-col justify-center px-4 w-full">
               <h2 className="text-lg font-semibold capitalize">{user.username}</h2>
               <p className="text-sm text-gray-300">Suggested for you</p>
 
-              <button
+
+             { (!isFollowing)  ?
+             ( <button
                 onClick={(e) => {
                   e.preventDefault();
                   if (userId === user._id) return;
-                  followMutation.mutate({
+                  followMutation.mutate({ 
                     userId,
                     accountId: user._id,
                   });
@@ -197,8 +239,17 @@ export default function Navbar() {
                 className="mt-2 w-24 bg-blue-600 text-white py-1.5 text-sm rounded-full shadow-md hover:bg-blue-500 active:scale-95 transition-all duration-200"
               >
                 Follow
+              </button>)
+              : <button className="mt-2 w-24 bg-gray-600 text-white py-1.5 text-sm rounded-full shadow-md cursor-not-allowed">
+                Following
               </button>
+              }
+
+             
+             
             </div>
+            ) :null }
+            
             
           </div>
           </Link>

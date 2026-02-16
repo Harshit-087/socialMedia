@@ -25,6 +25,8 @@ export type MediaItem={
   caption:string;
   media: MediaItem[]; createdAt: string; }
 
+
+
   type DeleteLikeResponse={
     msg:string
   }
@@ -76,7 +78,8 @@ export default function PostCard() {
   const [likedImage, setLikedImage] = useState<{[key:string]:boolean}>({});
   const [likesOnPost,setLikesOnPost] = useState<{[key:string]:number}>({})
   const [openComment,setOpenComment] = useState<boolean>(false);
-  const [commentForPost,setCommentForPost]=useState<string>();
+  const [commentForPost,setCommentForPost]=useState<PostType>();
+
   
 
   //using useQueryclient invalidateQueries.
@@ -224,7 +227,7 @@ export default function PostCard() {
 
   // sidepanel appear fro image.. 
    const handleCommentPanel=(index:number)=>{
-    const url = post[index].media[0]?.url ?? " ";
+    const url = post[index]
     setCommentForPost(url);
     setOpenComment(true)
 
@@ -274,7 +277,7 @@ export default function PostCard() {
       </div>
 
       {/* Post image */}
-      <div className="w-full max-md:relative">
+      <div className="w-full relative">
       {/* checking for video or img  */}
        {item.kind==="post" ? 
        <Image

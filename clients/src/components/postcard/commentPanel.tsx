@@ -13,10 +13,11 @@ import Comments from "./comments"
 import toast from "react-hot-toast"
 import {ApiError} from "../auth/loginCard"
 import {AxiosResponse} from "axios"
+import {PostType} from "./card"
 
 interface props{
     close:()=>void;
-    data:string;
+    data:PostType;
 }
 
 
@@ -49,7 +50,7 @@ export default function CommentPanel({close,data}:props){
 
     //fetching all comments on post 
     const {data:comments,isLoading,error} = useQuery({
-        queryKey:["comments",data],
+        queryKey:["comments",data?.media[0]?.url],
         queryFn:async({queryKey})=>{
             const [_,postUrl] = queryKey;
             const res = await commentQuery.fetchingComment(postUrl);
@@ -79,7 +80,7 @@ export default function CommentPanel({close,data}:props){
 
     const handleComment=(e:string)=>{
         
-        commentMutation.mutate({value:e,userId,data});
+        commentMutation.mutate({value:e,userId,data:data?.media[0]?.url});
     }
 
      if(isLoading){
@@ -93,28 +94,41 @@ export default function CommentPanel({close,data}:props){
     return(
       <>
       <AnimatePresence>
-      <motion.div className="w-screen h-screen bg-[#1f2937] fixed inset-0 z-50 overflow-y-scroll overflow-x-hidden">
-        <button onClick={close} className="w-8 h-8 rounded-full bg-white flex justify-center items-center mx-4 my-6">
-          <MoveLeft/>
+      <motion.div className="w-screen min-h-screen bg-[#1f2937] fixed inset-0 z-50 overflow-y-scroll overflow-x-hidden md:flex md:flex-col ">
+        <div className="flex relative w-full h-10  mt-5 justify-center items-center">
+               <button onClick={close} className="w-8 h-8 absolute left-5 rounded-full bg-white flex justify-center items-center mx-4 my-6">
+          <MoveLeft className="text-black"/>
         </button>
-
-       
-        <div className="w-full   !my-4 rounded-lg relative left-24 ">
-          <Image src={data} alt="#" width={600} height={300} className="w-48 h-auto object-cover rounded-lg"/>
-          </div>
+         <h1 className="text-white font-bold">Bezal</h1>
+        </div>
         
-          <div className=" border-t-2 border-gray-800 overflow-y-scroll">
-            {/* for feature like share , writecomment,emojis */}
-            <div className="bg-pink-400 border-b-2  border-gray-600 ">
 
+       <div className="w-full md:h-140  relative  flex flex-col md:flex-row">
+
+          <div className="w-full md:flex-[0.60]  flex md:flex-col px-2">
+       
+          <div className=" flex-[0.40] md:flex-[0.60]  my-4 rounded-lg relative w-44  md:w-72 aspect-[3/4] mx-auto ">
+          <Image src={data?.media[0]?.url} alt="#" fill className="object-cover rounded-lg"/>
+           </div> 
+
+           <div className="bg-white rounded-xl  min-h-36  px-2 py-4 my-auto md:w-full flex-[0.30] md:flex-[0.25] text-black flex flex-col gap-2">
+            <h3 className="font-bold ">Author :{data?.userId?.username}</h3>
+            <p className="font-bold">Caption : <span className="font-normal">{data?.caption} </span></p>
             </div>
 
-            {/* showing all comments  */}
+           </div>
+
+             <div className= "w-full min-h-screen md:flex-[0.40] bg-black/20 border-l-2 border-white overflow-y-scroll">            {/* showing all comments  */}
           <Comments comments={comments}/>
 
             {/* commenting */}
           <CommentText handle={(e:string)=>handleComment(e)}/>
           </div>
+
+       </div>
+        
+        
+        
       </motion.div>
       </AnimatePresence>
       </>

@@ -20,5 +20,6 @@ export const followQuery={
     },
     fetchFollowingAccounts:async(id:string)=>{
         return await axiosInstance.get("/follow-api/followingAccounts",{params:{id}})
-    }
+    },
+   
 }

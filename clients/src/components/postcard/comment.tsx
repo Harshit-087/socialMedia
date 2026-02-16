@@ -35,14 +35,14 @@ export default function CommentText({ handle }: HandleProps) {
 
   return (
     <motion.div
-      className="w-full bg-zinc-900/80 backdrop-blur-md border-t border-zinc-700 p-3 flex items-center fixed bottom-0 left-0 right-0 z-50"
+      className=" bg-zinc-900/80 backdrop-blur-md border-t border-zinc-700 p-3 flex items-center fixed bottom-0 left-0 right-0 z-50"
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {/* Avatar */}
-      <div className="w-12 h-12 max-md:relative rounded-full overflow-hidden border border-zinc-700 flex-shrink-0">
+      <div className="w-12 h-12 relative rounded-full overflow-hidden border border-zinc-700 flex-shrink-0">
         <Image
           src={profileImage || "/default-avatar.png"}
           alt={username || "User"}

@@ -31,14 +31,15 @@ export default function Dashboard() {
         </div>
         </div>
 
-        {/* Footer for mobile and tablet */}
+        
+      </section>
+      {/* Footer for mobile and tablet */}
          <div className="w-full h-[60px] fixed bottom-0 bg-white/90 backdrop-blur-md shadow-t-lg border-t border-gray-200 lg:hidden ">
         <Footer />
           </div>
-      </section>
          
          {/* footer for desktop */}
-         <div className="hidden lg:flex-[0.20]  h-fit  lg:block  bg-white/90 backdrop-blur-md shadow-t-lg border-2 border-gray-200 mx-4 my-5 p-4 rounded-4xl shadow-2xl sticky top-6">
+         <div className="hidden lg:flex-[0.20] lg:mt-2 h-fit  lg:block  bg-white/90 backdrop-blur-md shadow-t-lg border-2 border-gray-200  p-4 rounded-4xl shadow-2xl sticky top-6">
         <Footer />
           </div>
       </div>

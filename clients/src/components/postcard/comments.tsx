@@ -38,7 +38,7 @@ export default function Comments({ comments }: CommentProps) {
         >
           {/* Avatar */}
           <div className="flex-shrink-0">
-            <div className="max-md:relative w-12 h-12 rounded-full overflow-hidden border border-zinc-700">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden border border-zinc-700">
               <Image
                 src={comment.userId?.profileImage || "/default-avatar.png"}
                 alt={comment.userId?.username || "User"}

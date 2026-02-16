@@ -10,11 +10,17 @@ import { PostType } from "@/components/postcard/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlusCircle } from "lucide-react";
 import toast from "react-hot-toast"
+import {useSearchParams} from "next/navigation"
+import {useUser} from "@/hooks/userhook";
 
 export default function Posts({userid}:{userid:string}) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [post, setPost] = useState(false);
+  const {userId} = useUser()
+
+  const  searchParams = useSearchParams()
+  const id = searchParams.get("id");
   
   const modalRef = useRef<HTMLDivElement>(null);
  
@@ -65,16 +71,20 @@ export default function Posts({userid}:{userid:string}) {
     <>
       <section className="w-full flex flex-col  text-white pb-20 px-4">
         {/* Header Bar */}
+
+        {userId===id? 
         <div className="flex justify-between items-center mt-6 bg-zinc-800/70 backdrop-blur-sm rounded-xl px-5 py-3 border border-zinc-700 shadow-md">
           <h2 className="text-lg font-semibold">Create a new post</h2>
-          <button
+          
+           <button
             onClick={() => setPost(!post)}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2 rounded-lg text-sm font-medium"
           >
             <PlusCircle size={18} />
             <span>Post</span>
           </button>
-        </div>
+          </div>
+           :null}  
 
         {/* Gallery Section */}
         <div id="posts" className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

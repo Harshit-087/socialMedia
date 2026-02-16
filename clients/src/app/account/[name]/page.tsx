@@ -16,7 +16,9 @@ import toast from "react-hot-toast"
 import {storyQuery} from "../../api/storyQuery"
 import FollowerAccount from "@/components/followerAccount/follower"
 import Videos from "@/components/video/videos";
-
+import {AxiosResponse} from "axios"
+import {ApiError} from "@/components/auth/loginCard"
+import {FollowResponse,FollowVariables} from "@/components/nav/navbar"
 
 
 export default function Profile() {
@@ -37,7 +39,7 @@ export default function Profile() {
  const id = searchParam.get("id")
   
 
-  const{data:following={},isLoading:followLoading,error:followError}=useQuery({
+  const{data:following=[],isLoading:followLoading,error:followError}=useQuery({
     queryKey:["follow",id],
     queryFn:async({queryKey})=>{
        const [,id]=queryKey as [string, string|undefined ];
@@ -45,7 +47,8 @@ export default function Profile() {
        const res= await followQuery.following(id)
       //  toast.success(res.data.msg)
        return res.data.data;
-    }
+    },
+    enabled:!!id
   })
 
   const {data,isLoading,error}=useQuery({
@@ -99,30 +102,57 @@ export default function Profile() {
   },[following])
 
     // seeing all followers from profile 
+    
   
   const {data:followersAccounts=[],isLoading:followersAccountsLoading,error:followersAccountsError}=useQuery({
-    queryKey:["followersAccounts",id,label],
-    queryFn:async({queryKey})=>{
-      const [,id,label] = queryKey as [string,string|undefined,string|undefined]
-      if(!id || !label) return;
+    queryKey:["followerAccount",id,label],
+    queryFn:async()=>{
+      
+      if(!id || !label) throw new Error("Missing id or label");;
 
-      if(label==="Followers" && numberOfFollowers>0){
+      if(label==="Followers"){
       const res = await followQuery.fetchFollowerAccounts(id); 
       console.log("followers accounts aa gaya ",res.data.data)
       return res.data.data;
       }
-      if(label==="Following" && numberOfFollowers>0){
+      if(label==="Following" ){
         const res = await followQuery.fetchFollowingAccounts(id); 
         console.log("following accounts aa gaya ",res.data.data)
         return res.data.data;
       }
-      setSeeAllAccounts(false)
+      
       
     },
-    enabled:seeAllAccounts && !!id
+    enabled:seeAllAccounts && !!id && !!label
   })
-  
 
+  
+  console.log("followers accounts in profile page",followersAccounts)
+
+
+  
+    const followMutation = useMutation<AxiosResponse<FollowResponse>, ApiError, FollowVariables>({
+    mutationFn: async ({ userId, accountId }: FollowVariables) => {
+      if (userId === accountId) {
+        throw new Error("Cannot follow yourself");
+      }
+      return await followQuery.follow(userId, accountId);
+    },
+    onSuccess: (res: AxiosResponse<FollowResponse>) => {
+      toast.success(res.data?.msg);
+      console.log("followed successfully", res);
+      queryClient.invalidateQueries({queryKey:["follow",userId]})
+     
+    },
+    onError: (err: ApiError) => {
+      console.log("error in following", err);
+    },
+  });
+
+  const isFollowing = following.some((f:{followId:string})=>f.followId === id)
+
+
+ 
 
   return (
     <>
@@ -172,12 +202,23 @@ export default function Profile() {
             ))}
           </div>
           {(userId!==id)?
-          <div className="w-72 my-2 p-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-500 ">follow</div>
+          <div
+           className="w-72 my-2 p-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-500 cursor-pointer"
+          onClick={()=>{
+            followMutation.mutate({userId:userId as string ,accountId:id as string})
+          }}
+          >follow</div>
           :<div className="flex gap-4 justify-center my-4">
             <Link href={`/account/${data?.data?.[0].username}/editprofile`}> <div  className="border-2 border-gray-500 w-32 py-1 rounded-lg whitespace-nowrap">edit profile</div></Link>
          
          <Link href=""> <div className="border-2 border-gray-500 w-32 py-1 rounded-lg whitespace-nowrap">share profile</div></Link> 
           </div> }
+
+          {/* followed */}
+          {isFollowing ? (
+            <div className="w-72 my-2 p-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-500 cursor-pointer">following</div>
+          ):null}
+          
         </section>
 
         {/* Navigation Tabs */}
@@ -216,7 +257,7 @@ export default function Profile() {
 
         {/* Posts Section */}
         <section className="w-full  max-w-3xl mt-6 px-4 ">
-          {stories ? 
+          {(stories && userId===id )? 
           <div className="w-full h-15 border-2 border-gray-200 px-4  rounded-lg flex justify-between items-center">
             <p className="text-lg">create story</p>
             <button onClick={()=>setCreateStory(true)} className="bg-blue-500 rounded-lg w-24 h-8  " >create</button></div>:null}

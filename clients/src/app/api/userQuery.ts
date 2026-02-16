@@ -9,12 +9,17 @@ export interface Data{
 
 export const userQuery={
     login:async(data:Data)=>{
-        return await axiosInstance.post("/signin",
-           data
+        return await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/signin`,
+           data,{
+            withCredentials:true
+           }
         )
     },
     signup:async(data:formData)=>{
-        return await axiosInstance.post("/register",data)
+        return await axiosInstance.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/register`,
+            data,{
+                withCredentials:true
+            })
     },
     // redirectToHome:async(token:string)=>{
     //     return await axiosInstance.get("/dashboard", {
