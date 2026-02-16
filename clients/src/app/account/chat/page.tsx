@@ -1,210 +1,236 @@
-"use client"
+// app/components/chat/ChatDashboard.tsx
+"use client";
 
-import {useEffect,useState,useRef} from "react"
-import {useQuery,useQueryClient} from "@tanstack/react-query"
-import {useUser} from "@/hooks/userhook"
-import {followQuery} from "@/app/api/followQuery"
-import {GetSocket} from "@/lib/socket"
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@/hooks/userhook";
+import { followQuery } from "@/app/api/followQuery";
+import { GetSocket } from "@/lib/socket";
 import { FaCircleArrowLeft } from "react-icons/fa6";
-import Link from "next/link"
-import ChatText from "@/components/chat/chatTextSender"
-import Image from "next/image"
-import {Socket} from "socket.io-client"
+import Link from "next/link";
+import ChatText from "@/components/chat/chatTextSender";
+import Image from "next/image";
+import { Socket } from "socket.io-client";
+import {messageQuery} from "@/app/api/messageQuery";
+import { CiSearch } from "react-icons/ci";
 
-type Account ={
-    followId:{
-        username:string,
-        profileImage:string,
-        _id:string
-    }
-}
+type Account = {
+  followId: {
+    username: string;
+    profileImage: string;
+    _id: string;
+  };
+};
 
 export default function ChatDashboard() {
+  const { userId } = useUser();
+  const queryClient = useQueryClient();
+  const [active , setActive] = useState<string>("offline")
 
-  const [ inputValue,setInputValue] = useState<string>("")
-  const [message,setMessage] = useState<string>("")
-  const [activeChat,setActiveChat] =useState({username:"",id:"",open:false})
-    const {userId } = useUser()
-    const queryClient = useQueryClient()
-    const [socket ,setSocket]=useState<Socket|null>(null)
-     const [active , setActive] = useState<string>("")
-     const [isOpen ,setIsOpen] = useState<boolean|null>(false)
-     const chatRef = useRef<HTMLDivElement|null>(null)
-   
-     const {data,isLoading,isError} = useQuery({
-    queryKey:["following",userId],
-    queryFn:async({queryKey})=>{
-        const [,id]=queryKey as [string ,string|undefined]
-        if(!id) throw new Error("invalid id")
-      const res  = await  followQuery.fetchFollowingAccounts(userId)
+  // UI state
+  const [activeChat, setActiveChat] = useState<{ username: string; id: string; open: boolean }>({
+    username: "",
+    id: "",
+    open: false,
+  });
+  // mobile-only panel toggle (false = show contact list; true = show chat)
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-    return res.data.data;
-        
-    }
-   })
+  // socket stored in ref to avoid re-subscribing when component re-renders
+  const socketRef = useRef<Socket | null>(null);
 
-   useEffect(()=>{
-    if(!userId || !data?.length) return
+  // fetch following list
+  const { data: following, isLoading: followingLoading } = useQuery<Account[]>({
+   queryKey: ["following", userId],
+    queryFn:async () => {
+      if (!userId) throw new Error("invalid id");
+      const res = await followQuery.fetchFollowingAccounts(userId);
+      return res.data.data;
+    },
+     enabled: !!userId 
+});
 
-    const s = GetSocket(userId , data[0].followId._id)
-    setSocket(s);
-   },[userId,data])
+  // Initialize socket when userId is available (defer server-side issues)
+  useEffect(() => {
+    if (!userId || !following?.length) return;
 
-     
-      useEffect(()=>{
-      if(!socket) return 
+    // create socket instance (GetSocket should handle creating/returning connected socket)
+    // If GetSocket returns a single shared socket per user, adapt accordingly.
+    const s = GetSocket(userId, following[0].followId._id);
+    socketRef.current = s;
 
-       socket.on("connect",()=>{
-        console.log("connected to server",socket.id)
+    const onConnect = () => console.log("socket connected", s.id);
+    s.on("connect", onConnect);
 
-       })
-       return ()=>{
-        socket.off("connect")
-       }
-    },[socket])
+    return () => {
+      s.off("connect", onConnect);
+      // NOTE: don't call s.disconnect() here if GetSocket manages a shared socket
+      // If GetSocket returns a dedicated socket per component, you may want to disconnect.
+    };
+  }, [userId, following]);
 
+  // handle incoming realtime messages (invalidate react-query so UI refreshes)
+  useEffect(() => {
+    const s = socketRef.current;
+    if (!s) return;
 
-
-   const handleSubmit=async(e:React.FormEvent)=>{
-    e.preventDefault();
-   
-    //formdata used in fetch and axios for multipart data..
-   //emit end plain js object 
-   //sending msg  to backend 
-     socket?.emit('chat-message',
-      {
-    message: inputValue,
-    senderId: userId,
-    receiverId: data[0].followId._id,
-   })
- 
-     setInputValue("") 
-    }
-   
-  // backend se msg emit hu room_id then recieve here for both sender and reciever
-    useEffect(()=>{
-       if(!socket) return;
-
-         const handleNewMessage = (message:string) => {
-          setMessage(message)
-    queryClient.invalidateQueries({
-      queryKey: ["senderMessages", userId, activeChat.id],
-    });
-  };
-  // recieving msg response that emitted.
-    socket.on('new-message',(message)=>{
-      console.log("message recieved")
-      handleNewMessage(message);
-    })
-     
-  return()=>{
-    socket.off("new-message", handleNewMessage);
-  }
-
-    },[socket,activeChat.id,userId,queryClient])
-
-    // for scroll the screen for new msg 
-    useEffect(()=>{
-      if(chatRef.current){
-        chatRef.current.scrollTop=chatRef.current.scrollHeight
+    const onNewMessage = (payload: { roomId?: string; message?: string }) => {
+      // Invalidate messages for the currently open chat and for any related conversation caches.
+      // We invalidate the specific senderMessages cache keyed by [ "senderMessages", userId, roomIdOrActiveChatId ]
+      if (payload?.roomId) {
+        queryClient.invalidateQueries({
+          queryKey: ["senderMessages", userId, payload.roomId],
+        });
       }
-    },[message])
+      // Also invalidate the active chat if open (so header preview / last message updates)
+      queryClient.invalidateQueries({ queryKey: ["following", userId] });
+      console.log("new-message payload", payload);
+    };
 
+    s.on("new-message", onNewMessage);
+    return () => {
+      s.off("new-message", onNewMessage);
+    };
+  }, [queryClient, userId]);
 
+  // Send message through socket; ensure activeChat.id is used (not data[0])
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const input = form.querySelector("input[name='message']") as HTMLInputElement | null;
+      const value = input?.value?.trim();
+      if (!value || !userId || !activeChat.id) return;
+
+      // optimistic UI: invalidate so React Query re-fetches messages
+      queryClient.invalidateQueries({ queryKey: ["senderMessages", userId, activeChat.id] });
+
+      socketRef.current?.emit("chat-message", {
+        message: value,
+        senderId: userId,
+        receiverId: activeChat.id,
+      });
+
+      
+
+      // clear the input
+      if (input) input.value = "";
+    },
+    [activeChat.id, queryClient, userId]
+  );
+
+  // function creates once not again and again as re-render, due to useCallback.
+  //  only when dependency cahnge the new function is created .
+  const handleSelectContact = useCallback((account: Account) => {
+    setActiveChat({
+      username: account.followId.username,
+      id: account.followId._id,
+      open: true,
+    });
+
+    // On mobile, open the chat view (desktop will still display both columns)
+    setMobileOpen(true);
+
+    // prefetch messages for faster UX as usr click on contact
+    queryClient.prefetchQuery({
+      queryKey:["senderMessages", userId, account.followId._id],
+      queryFn:async()=>{
+        if(!userId) throw new Error("invalid id")
+        const res = await messageQuery.fetchMessage(userId,account.followId._id)
+        return res.data.data
+      }
+    });
+  }, [queryClient, userId]);
+
+  // layout classes: mobile-first; md: show both columns.
+  // left panel: w-full on small, fixed on md+
+  // right panel: hidden on small until mobileOpen true; md:flex always show
   return (
     <div className="h-screen w-full bg-zinc-900 flex">
-      
       {/* Left: Conversation List */}
-      <div className={`${isOpen?"hidden":"flex"} w-full md:flex md:w-52 lg:w-80 border-r border-zinc-800 flex flex-col`}>
-        <div className="h-14 px-2 flex items-center ">
-        <Link href="/account/dashboard"> 
-         <FaCircleArrowLeft size={20} className="text-white"/> 
-         </Link>
-          <h1 className="px-4 border-b border-zinc-800 text-white">chats</h1>
+<div
+  className={`${
+    mobileOpen ? "hidden" : "flex"
+  } w-full md:flex md:w-60 lg:w-80 border-r border-zinc-800 flex-col bg-zinc-900`}
+>
+  <div className="h-14 px-2 flex items-center border-b border-zinc-800">
+    <Link href="/account/dashboard">
+      <FaCircleArrowLeft size={20} className="text-white hover:text-green-400 transition-colors" />
+    </Link>
+    <h1 className="px-4 text-white font-semibold text-lg">Chats</h1>
+  </div>
+
+  <div className="p-2 w-full">
+    <label htmlFor="searchContacts" className="flex  h-12 border-2 border-zinc-700 rounded-xl overflow-hidden">
+      <input
+        name="search"
+        type="text"
+        placeholder="Search"
+        className="text-white bg-zinc-800 flex-1  px-2 outline-none"
+      />
+      <button className="bg-green-500 py-1 px-4 md:px-2 font-medium hover:bg-green-600 transition-colors">
+        <CiSearch size={18} className="text-white" />
+      </button>
+    </label>
+  </div>
+
+  <div className="flex-1 overflow-y-auto py-2">
+    {followingLoading && <p className="text-white px-4">Loading contacts...</p>}
+    {following?.map((item) => (
+      <button
+        key={item.followId._id}
+        onClick={() => handleSelectContact(item)}
+        className="w-full h-16 px-4 py-2 text-white rounded-xl bg-zinc-800 flex items-center gap-3 hover:bg-zinc-700 transition-colors"
+      >
+        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
+          <Image src={item.followId.profileImage} alt={item.followId.username} fill className="object-cover" />
         </div>
 
-        <div className="bg-white w-full p-2 h-12">
-          <label htmlFor="searchContacts" className="flex h-full border-2 border-gray-800 rounded-xl overflow-hidden ">
-          <input
-           type="text" 
-          placeholder="search" 
-          className="text-black bg-red-200 flex-[0.80] px-1 border-none "/>
-          <button className="bg-green-500 flex-[0.20]">search</button>
-          </label>
+        <div className="flex-1 text-left">
+          <h2 className="text-sm font-medium">{item.followId.username}</h2>
+          <span className="text-xs text-zinc-400 italic">Online / last message</span>
         </div>
+      </button>
+    ))}
+  </div>
+</div>
 
-        <div className="flex-1 overflow-y-auto py-2">
-          {/* Conversation items go here */}
-         
-           {data?.map((item:Account ,index:number)=>(
-            // main contact
-          <div key={index} 
-          onClick={()=>{
-            setActiveChat({username:item.followId.username,id:item.followId._id,open:true})
-            setIsOpen(true)
-          }}
-          className=" w-full h-16 px-4 py-2 text-white rounded-xl bg-gray-800 flex"  >
-             {/* image left side */}
-            <div className="relative w-12 h-12 aspect-square rounded-full overflow-hidden">
-              <Image src={item.followId.profileImage} alt="#" fill className="object-cover"/>
-            </div>
-            {/* center name and msg */}
-            <div className="bg-red-200 flex flex-col">
-            <h2 className="px-2">{item.followId.username}</h2>
-           {chatRef.current ?<p>{message}</p> :null} 
-            </div>
-            </div>
-        ))}
-         
-        </div>
-      </div>
+{/* Right: Chat Window */}
+<div className={`${mobileOpen ? "flex" : "hidden"} flex-1 md:flex flex-col`}>
+  <div className="h-16 border-b border-zinc-800 flex items-center px-4 bg-zinc-900">
+    <button className="mr-4 md:hidden text-white hover:text-green-400 transition-colors" onClick={() => setMobileOpen(false)}>
+      <FaCircleArrowLeft size={20} />
+    </button>
+    <div className="flex flex-col">
+      <h1 className="text-2xl font-semibold text-white">{activeChat.username || "User Name"}</h1>
+      <span className={`text-sm ${active === "online" ? "text-green-400" : "text-gray-400"} italic`}>{active}</span>
+    </div>
+  </div>
 
-      {/* Right: Chat Window */}
-      <div className={`${isOpen?"flex":"hidden"} flex-1 md:flex flex-col `}>
-        
-        {/* Header */}
-        {activeChat.open ===true ? 
-        <div className="h-16 border-b border-zinc-800 flex  px-4 text-white bg-blue-200">
-          <button className="mr-4 md:hidden" onClick={()=>setIsOpen(false)}>
-            <FaCircleArrowLeft size={20} className="text-white"/>
-          </button>
-          <div className="flex flex-col items-center  py-2">
-              <h1 className="h-12 self-start mx-4 text-2xl">{activeChat.username}</h1> 
-             {active ? <p className="self-start mx-4">{active}</p>:null } 
-         </div>
-        </div>
-        :<div className="h-16 border-b border-zinc-800 flex items-center px-4  text-white">
-          User Name
-        </div>}
-        
+  {/* Messages area */}
+  <div className="flex-1 bg-zinc-950 overflow-y-auto p-4 rounded-t-2xl">
+    {activeChat.id ? <ChatText id={activeChat.id} setActive={setActive} /> : <div className="text-zinc-400 italic">Select a chat to start messaging.</div>}
+  </div>
 
-        {/* Messages */}
-        <div 
-        ref={chatRef}
-        className="flex-1 flex-col-reverse bg-white overflow-y-auto p-4 ">
-          
-          {/* Messages go here */}
-          {activeChat ?
-          
-         <ChatText id={activeChat.id} setActive={setActive}/>
-       :null}
-        </div>
-
-        {/* Input */}
-        <div className="h-16 border-t border-zinc-800 bg-transparent  flex items-center px-4">
-          <form onSubmit={(e)=>handleSubmit(e)} className=" w-full flex bg-transparent ">
-             <input
-            type="text"
-            value={inputValue}
-            onChange={(e)=>setInputValue(e.target.value)}
-            placeholder="Type a message..."
-            className="w-full bg-zinc-800 text-white rounded-lg px-4 py-2 outline-none"
-          />
-          <button className="bg-blue-500 text-white px-2 py-1">send</button>
-          </form>
-        </div>
-      </div>
+  {/* Input */}
+  <div className="h-16 border-t border-zinc-800 bg-zinc-900 flex items-center px-4">
+    <form onSubmit={handleSubmit} className="w-full flex gap-2">
+      <input
+        name="message"
+        type="text"
+        placeholder="Type a message..."
+        className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-green-500 transition"
+      />
+      <button
+        type="submit"
+        className="bg-green-500 text-white px-5 py-2 rounded-xl font-semibold hover:bg-green-600 transition-colors"
+      >
+        Send
+      </button>
+    </form>
+  </div>
+</div>
 
     </div>
-  )
+  );
 }

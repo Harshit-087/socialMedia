@@ -72,7 +72,7 @@ export async function POST(request: NextRequest){
  
    // log for checking going to backend with data .
    console.log("Posting to backend:", {
-  backendUrl: `${process.env.BACKEND_URL}/post-api/uploadPost`,
+  backendUrl: `${process.env.BACKEND_URL}/post-api/uploadPost` ,
   userId,
   publicId: result.public_id,
 });

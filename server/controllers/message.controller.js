@@ -16,6 +16,7 @@ try{
       const activeStatus = io.sockets.adapter.rooms.get(id)?.size 
 
     console.log("get the message sended",messages)
+    console.log("get the status",activeStatus)
     return res.status(200).json({msg:"successfully fetched",data:messages,isActive:activeStatus})
    }catch(error){
     console.log("error in fetching the sender message",error)

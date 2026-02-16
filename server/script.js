@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
   })
 
  
-  io.to(MessageDoc.roomId).emit("new-message",data.message)
+  io.to(MessageDoc.roomId).emit("new-message",{message:data.message,roomId:MessageDoc.roomId})
 
   console.log(
     "message send to :",
