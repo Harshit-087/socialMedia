@@ -1,16 +1,20 @@
 import mongoose from "mongoose"
 
 
-const messageSchema= new mongoose.schema({
+const messageSchema= new mongoose.Schema({
     senderId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    recieverId:{
+    receiverId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    data:{
+    roomId:{
+        type:String
+
+    },
+    message:{
        type:String
     },
     mediaUrl:{

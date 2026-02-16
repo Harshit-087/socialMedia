@@ -1,20 +1,32 @@
 import express from "express";
+import {createServer} from "node:http"
 import cors from "cors";
-import { fileURLToPath } from "url";
-import path from "path";
+
+import {Server} from "socket.io"
 import router from "./router/router.js";
 import  connectionDb  from "./db/connection.js";
 import dotenv from 'dotenv'
+import Message from "./models/message.schema.js";
+import mongoose from "mongoose";
 dotenv.config()
 
 const app = express();
-connectionDb();
+const server = createServer(app);
 
 const allowedOrigins = [
   process.env.ORIGIN1,
  process.env.ORIGIN2// your machine's IP for mobile testing
  
 ];
+
+export  const io = new Server(server,{
+  cors:{
+     origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  }
+})
+
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -26,14 +38,46 @@ app.use(cors({
   credentials: true
 }));
 
+connectionDb();
 
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
 
 app.use("/", router);
 
-app.listen(5000,"0.0.0.0", () => {
+io.on("connection", (socket) => {
+  const {userId,receiverId} = socket.handshake.query;
+
+  // create a room for the chat 
+  const room_id = [userId,receiverId].sort().join("_");
+  socket.join(room_id);
+  console.log("✅ CONNECTED:", socket.id);
+ 
+ socket.on('chat-message',async(data)=>{
+  console.log("chat message",data)
+  
+
+  //create doc of data for storage
+  const MessageDoc = await Message.create({
+    senderId:new mongoose.Types.ObjectId( data.senderId),
+    receiverId:new mongoose.Types.ObjectId(data.receiverId),
+    roomId:room_id ,
+    message:data.message
+  })
+
+ 
+  io.to(MessageDoc.roomId).emit("new-message",data.message)
+
+  console.log(
+    "message send to :",
+    data.receiverId,
+    "Room size:",
+    io.sockets.adapter.rooms.get(data.receiverId)?.size)
+ })
+});
+
+
+
+server.listen(5000,"0.0.0.0", () => {
   console.log("Server running on port 5000");
 });
 
@@ -41,41 +85,4 @@ app.listen(5000,"0.0.0.0", () => {
 
 
 
-//server  as static files ..
-// app.use('/uploads', express.static(path.join(_dirname, 'uploads')));
 
-
-
-
-// const storage = multer.diskStorage({ destination: function (req, file, cb) {
-//     cb(null, './uploads')
-//   }, filename: function (req, file, cb) {
-//     const ext = path.extname(file.originalname)  //eg .png or .jpg
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-//     cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`)
-//   }})
-// const upload=multer({storage})
-
-// app.post("/photo",upload.single("pictures"),(req,res)=>{
-
-//    const name=req.file.filename
-//    if(name){
-//     res.status(200).json({msg:"image uploaded successfully"})
-//    }
-//    else{
-//     res.status(500).json({msg:"internal server error"})
-//    }
-// })
-
-// app.get("/image",(req,res)=>{
-//     const upload_dir=path.join(_dirname,"uploads")
-//     fs.readdir(upload_dir,(err,files)=>{
-//         if(err){
-//             console.log("error in uploading the file ",err.message)
-//             res.status(200).json({msg:"internal server error"})
-//         }
-
-//         const imageUrl = files.map(file=>`${process.env.BACKEND_URL}/uploads/${file}`)
-//         res.status(200).json({msg:"success",imageUrl})
-//     })
-// })   

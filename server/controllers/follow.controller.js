@@ -74,6 +74,7 @@ export const followersAccounts = async(req,res)=>{
     const {id} = req.query;
     try{
         const followerAccounts = await Follower.find({userId:id}).populate("followerId","profileImage username _id")
+        // console.log("followerAccount leeeeellee",followerAccounts)
         return res.status(200).json({msg:"fetched follower accounts",data:followerAccounts})
     }catch(error){
         console.log("error in fetching follower accounts",error)
@@ -84,7 +85,9 @@ export const followersAccounts = async(req,res)=>{
 export const followedAccounts = async(req,res)=>{
     const {id} = req.query;
     try{
+        console.log("iddddd",id)
         const followedAccounts = await Follow.find({userId:id}).populate("followId","profileImage username _id")
+    //   console.log("followedAccount leeeeellee",followedAccounts)
         return res.status(200).json({msg:"fetched followed accounts",data:followedAccounts})
     }catch(error){
         console.log("error in fetching followed accounts",error)

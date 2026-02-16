@@ -9,8 +9,8 @@ import commentRouter from "./comments.router.js"
 import followRouter from "./follow.router.js"
 import {Register,Signin} from "../controllers/user.controller.js"
 import videoRouter from "./video.router.js"
-
 import dotenv from "dotenv"
+import messageRouter from "./message.router.js"
 dotenv.config()
 
 const router= express.Router()
@@ -36,5 +36,8 @@ router.use("/follow-api",followRouter)
 router.use("/post-api",postRouter)
 
 router.use("/video-api",videoRouter)
+
+router.use("/message-api",messageRouter)
+
 export default router
 
