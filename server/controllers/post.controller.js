@@ -15,7 +15,7 @@ export const createPost = async(req,res)=>{
     caption,
      media:[{publicId,url, position:0, mediaType: "image"}]
     })
-    console.log("post created",savedPost)
+  
     console.dir(JSON.stringify(savedPost,null,2))
     return res.status(200).json({msg:"post created",data:savedPost})
 

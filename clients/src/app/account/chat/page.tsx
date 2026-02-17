@@ -75,11 +75,12 @@ export default function ChatDashboard() {
     if (!s) return;
 
     const onNewMessage = (payload: { roomId?: string; message?: string }) => {
-      // Invalidate messages for the currently open chat and for any related conversation caches.
-      // We invalidate the specific senderMessages cache keyed by [ "senderMessages", userId, roomIdOrActiveChatId ]
-      if (payload?.roomId) {
-        queryClient.invalidateQueries({
-          queryKey: ["senderMessages", userId, payload.roomId],
+      // Invalidate message queries so the UI refreshes with the latest messages.
+      // Use a partial query key so all conversations for this user are refreshed,
+      // regardless of the specific roomId used in the cache key.
+       if (payload?.roomId) {
+          queryClient.invalidateQueries({
+          queryKey: ["senderMessages", userId],
         });
       }
       // Also invalidate the active chat if open (so header preview / last message updates)

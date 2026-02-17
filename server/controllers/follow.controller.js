@@ -85,7 +85,7 @@ export const followersAccounts = async(req,res)=>{
 export const followedAccounts = async(req,res)=>{
     const {id} = req.query;
     try{
-        console.log("iddddd",id)
+      
         const followedAccounts = await Follow.find({userId:id}).populate("followId","profileImage username _id")
     //   console.log("followedAccount leeeeellee",followedAccounts)
         return res.status(200).json({msg:"fetched followed accounts",data:followedAccounts})

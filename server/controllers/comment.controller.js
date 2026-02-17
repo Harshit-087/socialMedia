@@ -32,7 +32,7 @@ export const fetchingComment = async(req,res)=>{
       .populate("postId","_id")
       .populate("userId","username profileImage")
       .sort({createdAt:-1})
-    console.log("existedComments",existedComments)
+    
 
     return res.status(200).json({msg:"fetched comments successfully",data:existedComments})
     }catch(error){

@@ -5,7 +5,7 @@ import mongoose from "mongoose"
 import Post from "../models/post.schema.js"
 
  export const Register  = async(req,res)=>{ 
-    console.log("reached")
+   
     const {username,email,password,bio,profileImage,website,isPrivate} = req.body
     console.log(req.body)
  try{
@@ -45,7 +45,7 @@ import Post from "../models/post.schema.js"
 
 
 export const Signin = async(req,res)=>{
-    console.log("reached in signin")
+
     console.log(req.body)
     const {email,password} = req.body
     const userExist = await User.findOne({email:email})

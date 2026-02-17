@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
   // create a room for the chat 
   const room_id = [userId,receiverId].sort().join("_");
   socket.join(room_id);
-  console.log("✅ CONNECTED:", socket.id);
+  
  
  socket.on('chat-message',async(data)=>{
   console.log("chat message",data)
@@ -64,8 +64,9 @@ io.on("connection", (socket) => {
     message:data.message
   })
 
- 
+ if(MessageDoc){
   io.to(MessageDoc.roomId).emit("new-message",{message:data.message,roomId:MessageDoc.roomId})
+ }
 
   console.log(
     "message send to :",

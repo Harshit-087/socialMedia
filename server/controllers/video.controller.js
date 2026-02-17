@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 export const videoUploadController = async (req,res)=>{
     const {userId,caption,secure_url,public_id} = req.body;
-    console.log("video upload controller called with ",req.body);
+    
     try{
           const newVideo = await Video.create({
         userId,
