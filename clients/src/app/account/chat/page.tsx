@@ -80,19 +80,20 @@ export default function ChatDashboard() {
       // regardless of the specific roomId used in the cache key.
        if (payload?.roomId) {
           queryClient.invalidateQueries({
-          queryKey: ["senderMessages", userId],
+          queryKey: ["senderMessages", userId,activeChat.id],
         });
       }
+      // if refreshed ..
       // Also invalidate the active chat if open (so header preview / last message updates)
-      queryClient.invalidateQueries({ queryKey: ["following", userId] });
+      queryClient.invalidateQueries({ queryKey: ["following", userId,activeChat.id] });
       console.log("new-message payload", payload);
     };
-
+ 
     s.on("new-message", onNewMessage);
     return () => {
       s.off("new-message", onNewMessage);
     };
-  }, [queryClient, userId]);
+  }, []);
 
   // Send message through socket; ensure activeChat.id is used (not data[0])
   const handleSubmit = useCallback(
