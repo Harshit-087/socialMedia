@@ -68,7 +68,7 @@ export default function CommentPanel({close,data}:props){
             return await commentQuery.createComment(value,userId,data);
         },
         onSuccess:(res:AxiosResponse<CommentResponse>)=>{
-            console.log("created comment success",res);
+            
             queryClient.invalidateQueries({queryKey:["comments"]});
 
         },

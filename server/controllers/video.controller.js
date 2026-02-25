@@ -29,3 +29,14 @@ export const fetchVideos = async(req,res)=>{
         return res.status(500).json({msg:"internal server error",error:error.message})
     }
 }
+
+export const  fetchAllVideos  = async(req,res)=>{
+     try{
+        const allVideos = await Video.find().sort({createdAt:-1}).populate("userId","profileImage username _id");
+        return res.json({msg:"fetched all videos successfully",data:allVideos})
+
+     }catch(error){
+        console.log("failed  to fetch video",error);
+        return res.json({msg:"internal server error",error:error.message});
+     }
+} 

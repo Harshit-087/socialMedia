@@ -106,10 +106,7 @@ const userSlice = createSlice({
            }
         }
     },
-      // uploadImage:(state,action)=>{
-      //   console.log("action payload in reducer",action.payload)
-      //       state.posts.push(action.payload)
-      // }
+      
     }
 })
 

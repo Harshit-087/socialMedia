@@ -2,18 +2,17 @@ import Message from "../models/message.schema.js";
 import {io} from "../script.js"
 
 export const sendMessage = async(req,res)=>{
-   const {userId,id} = req.query; 
-   console.log("recieved the idds :",userId,id)
+   const {id,convers_id} = req.query; 
+   console.log("recieved the idds :",convers_id)
 
 try{ 
-      const room_id = [userId,id].sort().join("_");
 
       // finding the chat for specific room .
-      const messages = await Message.find({roomId:room_id}).sort({createdAt:1}) //oldest first
+      const messages = await Message.find({conversationId:convers_id}).sort({createdAt:1}) //oldest first
 
       //online or offline
       // 1 for online , undefined fro offline
-      const activeStatus = io.sockets.adapter.rooms.get(id)?.size 
+      const activeStatus = io.sockets.adapter.rooms.get(id)?.size ;
 
     console.log("get the message sended",messages)
     console.log("get the status",activeStatus)

@@ -44,29 +44,38 @@ connectionDb();
 
 app.use("/", router);
 
+ 
 io.on("connection", (socket) => {
   const {userId,receiverId} = socket.handshake.query;
+  console.log("CONNECTED USER:", socket.handshake.query.userId);
 
   // create a room for the chat 
-  const room_id = [userId,receiverId].sort().join("_");
-  socket.join(room_id);
+  // const room_id = [userId,receiverId].sort().join("_");
+  socket.join(userId);
+
   
+  //beginner we do mapping as userid to socketId, so that the server know whom to send msg ,  they donot send to a reciver id they need socketId ,
+  // the room_id alraedy done the mapping of userid with socketId .
  
  socket.on('chat-message',async(data)=>{
   console.log("chat message",data)
-  
+
 
   //create doc of data for storage
   const MessageDoc = await Message.create({
     senderId:new mongoose.Types.ObjectId( data.senderId),
     receiverId:new mongoose.Types.ObjectId(data.receiverId),
-    roomId:room_id ,
+    conversationId :[data.senderId,data.receiverId].sort().join("_"),
     message:data.message
   })
 
- if(MessageDoc){
-  io.to(MessageDoc.roomId).emit("new-message",{message:data.message,roomId:MessageDoc.roomId})
- }
+  
+  // id is used to status of other online or offline
+ io.to(data.receiverId).emit("new-message",{message:MessageDoc.message,conversationId:MessageDoc.conversationId,id:data.senderId});
+  
+ io.to(data.senderId).emit("new-message",{message:MessageDoc.message,conversationId:MessageDoc.conversationId,id:data.receiverId});
+
+
 
   console.log(
     "message send to :",

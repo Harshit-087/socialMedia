@@ -38,8 +38,8 @@ export interface FollowResponse {
   msg: string;                        // "followed"
   data: {
     _id: string;
-    followId: string;
-    userId: string;
+    followingId: string;
+    followerId: string;
     createdAt?: string;
     updatedAt?: string;
   };
@@ -79,7 +79,7 @@ export default function Navbar() {
   const queryclient=  useQueryClient();
   const router = useRouter()
 
-  const { data } = useQuery({
+  const { data: searchedUsers } = useQuery({
     queryKey: ["searchUser", searchUser],
     queryFn: async ({ queryKey }) => {
       const [, searchuser] = queryKey as [string, string | undefined];
@@ -90,18 +90,20 @@ export default function Navbar() {
     enabled: searchUser.length > 0,
   });
 
-   const{data:following=[],isLoading:followLoading,error:followError}=useQuery({
-    queryKey:["follow",userId],
-    queryFn:async({queryKey})=>{
-       const [,userId]=queryKey as [string, string|undefined ];
-       if(!userId) return ;
-       const res= await followQuery.following(userId)
-      //  toast.success(res.data.msg)
-       return res.data.data;
-    }
-  })
+    const{data,isLoading:followLoading,error:followError}=useQuery({
+      queryKey:["follow",searchedUsers?.[0]?._id,userId],
+      queryFn:async({queryKey})=>{
+         const [,id,userId]=queryKey as [string, string|undefined ,string|undefined];
+         if(!id || !userId) return ;
+         const res= await followQuery.following(id,userId)
+        //  toast.success(res.data.msg)
+         return res.data.data;
+      },
+      enabled:!!searchedUsers && !!userId
+    })
+  
 
-  const isFollowing = following.some((f:{ followId:string})=>f.followId ===data?._id)
+ 
 
   const handleAccount = () => setLoading(!loading);
 
@@ -114,7 +116,6 @@ export default function Navbar() {
     },
     onSuccess: (res: AxiosResponse<FollowResponse>) => {
       toast.success(res.data?.msg);
-      console.log("followed successfully", res);
       queryclient.invalidateQueries({queryKey:["follow",userId]})
      
     },
@@ -134,12 +135,12 @@ export default function Navbar() {
  },[pop])
 
 useEffect (()=>{
-  if(!Array.isArray(data)) return ; 
+  if(!Array.isArray(searchedUsers)) return ; 
 
-  if( data.length===1  &&    data[0]._id === userId){
-   router.push(`/account/${data[0].username}?id=${data[0]._id}`)
+  if( searchedUsers.length===1  &&    searchedUsers[0]._id === userId){
+   router.push(`/account/${searchedUsers[0].username}?id=${searchedUsers[0]._id}`)
   }
-},[data,router])
+},[searchedUsers,router])
 
   return (
     <>
@@ -200,9 +201,9 @@ useEffect (()=>{
     </div>
 
     {/* User List */}
-    {data && (
+    {searchedUsers && (
       <div className="w-full flex flex-col items-center gap-4 p-4">
-        {data.map((user: userInfo, idx: number) => (
+        {searchedUsers.map((user: userInfo, idx: number) => (
           <Link key={idx} href ={`/account/${user.username}?id=${user._id}`} >
           <div
             key={idx}
@@ -226,7 +227,7 @@ useEffect (()=>{
               <p className="text-sm text-gray-300">Suggested for you</p>
 
 
-             { (!isFollowing)  ?
+             { (!data?.isFollowing)  ?
              ( <button
                 onClick={(e) => {
                   e.preventDefault();

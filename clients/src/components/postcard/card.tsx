@@ -92,7 +92,7 @@ export default function PostCard() {
     isLoading: postLoading,
     error: postError,
   } = useQuery({
-    queryKey: ["posts",token],
+    queryKey: ["all-posts",token],
     queryFn: async ({ queryKey }) => { 
       const [_,token]=queryKey as [string ,string|undefined];
       if(!token) throw new Error("cannot find token");
@@ -105,13 +105,14 @@ export default function PostCard() {
 
   //fetching video from cache ..
    const {data:videos = [], isLoading, error} = useQuery<VideoItem[], Error>({
-     queryKey:["videos",userId],
+     queryKey:["all-videos",token],
      queryFn:async({queryKey})=>{
-         const [ , id] =queryKey as [string,string|undefined]
-         if(!id) return [];
-         const res = await videoQuery.fetchUserVideos(id);
+      const [_,token] = queryKey as [string ,string|undefined]
+         if(!token) return ;
+         const res = await videoQuery.fetchAllVideos(token);
          return res.data.data;
-     }
+     },
+     enabled:!!token
    })
 
 

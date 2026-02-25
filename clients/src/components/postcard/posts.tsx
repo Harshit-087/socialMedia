@@ -46,7 +46,7 @@ export default function Posts({userid}:{userid:string}) {
       const [, userIdFromKey] = queryKey;
       if (!userIdFromKey) return [];
       const res = await postQuery.showPosts(userIdFromKey);
-      console.log("queryData",res.data.data)
+
        toast.success(res.data.msg)
       return res.data?.data;
     },

@@ -27,6 +27,7 @@ export default function Videos(){
         const [ , id] =queryKey as [string,string|undefined]
         if(!id) return [];
         const res = await videoQuery.fetchUserVideos(id);
+       
         return res.data.data;
     }
   })

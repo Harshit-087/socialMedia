@@ -1,20 +1,20 @@
 import mongoose from "mongoose"
 
 
-const followerSchema = new mongoose.Schema({
-    userId:{
+const followSchema = new mongoose.Schema({
+    followerId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user",
         required:true
     },
-    followerId:{
+    followingId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user",
-        requires:true
+        required:true
     },
-},{timestampe:true})
+},{timestamps:true})
 
 
-const Follower = mongoose.model("follower",followerSchema)
+const Follow = mongoose.model("follow",followSchema)
 
-export default Follower
+export default Follow
