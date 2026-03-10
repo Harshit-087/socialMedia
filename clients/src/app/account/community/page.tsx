@@ -8,7 +8,17 @@ import Footer from "@/components/footer/footer"
 
  export default function Community(){
   const [openSidebar ,setOpenSidebar] = useState<boolean>(false);
+     const [openCommunity,setOpenCommunity] = useState<string|null>(null)
+      const [createCommunity , setCreateCommunity] =useState<boolean|null>(false)
 
+    const handleCreateCommunity=(v:boolean)=>{
+       setCreateCommunity(v);
+    }
+
+    const handleCommunity=(value:string|null)=>{ //  for specific community to open and null used to close it
+        setOpenCommunity(value);
+    }
+  
   const handleSidebar = ()=>{
        setOpenSidebar(prev=>!prev);
   }
@@ -18,11 +28,11 @@ import Footer from "@/components/footer/footer"
      {/* left side */}
      <AnimatePresence>
      {openSidebar &&( 
-      <Sidebar Sidebar={handleSidebar} value={openSidebar}/>)}
+      <Sidebar Sidebar={handleSidebar} value={openSidebar} community={handleCommunity} create={handleCreateCommunity} />)}
       </AnimatePresence>
    
       {/* right side */}
-      <CommunityDashboard Sidebar={handleSidebar} value={openSidebar}/>
+      <CommunityDashboard Sidebar={handleSidebar} value={openSidebar} community={handleCommunity} open={openCommunity} create={handleCreateCommunity} openCreate={createCommunity}/>
       <div className="w-full h-[60px] fixed bottom-0 bg-white/90 backdrop-blur-md shadow-t-lg border-t border-gray-200 lg:hidden ">
               <Footer />
                 </div>

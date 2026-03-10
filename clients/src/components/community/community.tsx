@@ -1,66 +1,107 @@
+"use client"
 import Image from "next/image"
-import {motion} from "framer-motion"
-import { FaRegBell } from "react-icons/fa";
-import { FaShareAlt } from "react-icons/fa";
+import { motion } from "framer-motion"
+import { FaRegBell, FaShareAlt } from "react-icons/fa";
+import { useState } from "react";
 
-export default function CommunityProfile(){
-    return(
-        <motion.div 
-        initial={{y:100, opacity: 0 }}
-        animate={{y:0, opacity: 1 }}
-        exit={{y:100 , opacity:0}}
-        transition={{
-            type:"spring",stiffness:200,damping:25
-        }}
+export default function CommunityProfile() {
+    const [activeTab, setActiveTab] = useState("Post");
 
-        className="w-full absolute inset-0 h-screen overflow-y-scroll bg-[#080421bb]">
-                  <div className="w-full h-48 px-2 py-1 mt-5">
-                                  <div className="w-full h-full border-2 rounded-lg shadow-xl overflow-hidden relative">
-                  
-                                     {/* bg image upper */}
-                                     <div className="relative w-full h-2/3  overflow-hidden">
-                                      <Image src="/images/qunt.jpg" alt ="/image" fill className="object-cover scale-105"/>
-                                     </div>
-                  
-                                     {/* lower part */}
-                                     <div className="w-full h-1/2 flex flex-col border-1 border-gray-400  bg-[#48484ee7] rounded-t-lg absolute bottom-0 right-0 z-30  backdrop-blur-2xl">
-                  
-                                     <div className="w-full h-1/2  flex items-center  gap-2 px-4">
-                                      {/* middle user */}
-                                     <div className="relative w-8 h-8 aspect-square rounded-lg overflow-hidden shadow-xl ">
-                                  <Image src="/images/user.png" alt="images" fill className="object-contain"/>
-                                  </div>
-                                  <div className="flex flex-col leading-normal text-white">
-                                            <p>Tech Innovators</p>
-                                       <span className="text-xs">120000 members</span>
-                                     </div>
-                  
-                                  </div> 
+    const tabs = [
+        { name: "Post" },
+        { name: "Media" },
+        { name: "Discussion" },
+        { name: "Events" },
+        { name: "Members" },
+        { name: "About" },
+    ];
 
-                                  {/* lower 2 */}
-                                     <div className="flex-1 flex items-center justify-evenly">
-                                        <button className="w-[70%] rounded-md bg-blue-400 hover:bg-blue-700 ">join</button>
-                                        <FaRegBell size={20} className="text-white w-8 aspect-square border-2 border-transparent shadow-xl hover:border-blue-600 "/>
-                                        <FaShareAlt size={20} className="text-white  w-8 aspect-square  border-2 border-transparent shadow-xl hover:border-blue-600"/>
-                                     </div>
-                  
-                                     </div>
-                  
-                                  </div>
-                                  
-                              </div>
+    return (
+        <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            /* Changed to relative so it fits inside your dashboard column flow */
+            className="w-full min-h-full bg-transparent pt-4 z-30"
+        >
+            {/* Header Card */}
+            <div className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
+                
+                {/* Banner Image */}
+                <div className="relative w-full h-full">
+                    <Image 
+                        src="/images/qunt.jpg" 
+                        alt="Community Banner" 
+                        fill 
+                        className="object-cover"
+                        priority
+                    />
+                    {/* Dark gradient overlay for readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a052e] via-transparent to-black/20" />
+                </div>
 
-                              <div className="text-white mt-4 border-b-2 border-gray-400 flex overflow-x-auto">
-                                {[{name:"Post"},
-                                {name:"Media"},
-                                {name:"Discussion"},
-                                {name:"Events"},
-                                {name:"Members"},
-                                {name:"About"},
-                                ].map((item)=>(
-                                    <div key={item.name} className="px-2 py-1 m-2 flex-shrink-0 ">{item.name}</div>
-                                ))}
-                              </div>
+                {/* Info Bar (Floating at bottom) */}
+                <div className="absolute bottom-0 w-full p-4 md:p-6 backdrop-blur-xl bg-white/10 border-t border-white/20">
+                    <div className="flex flex-col gap-4">
+                        
+                        {/* Top Row: Title & Avatar */}
+                        <div className="flex items-center gap-4">
+                            <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30 shrink-0">
+                                <Image src="/images/user.png" alt="Community Logo" fill className="object-cover" />
+                            </div>
+                            <div className="text-white">
+                                <h2 className="text-xl md:text-2xl font-bold leading-tight">Tech Innovators</h2>
+                                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">120,000 members</p>
+                            </div>
+                        </div>
+
+                        {/* Bottom Row: Actions */}
+                        <div className="flex items-center gap-3">
+                            <button className="flex-1 md:flex-none md:w-48 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                                Join Community
+                            </button>
+                            <button className="p-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors">
+                                <FaRegBell size={18} />
+                            </button>
+                            <button className="p-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors">
+                                <FaShareAlt size={18} />
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="mt-6 border-b border-white/10 flex flex-wrap overflow-x-auto no-scrollbar scroll-smooth">
+                {tabs.map((item) => (
+                    <button
+                        key={item.name}
+                        onClick={() => setActiveTab(item.name)}
+                        className={`px-6 py-3 text-sm font-semibold transition-all relative shrink-0 ${
+                            activeTab === item.name ? "text-blue-400" : "text-slate-400 hover:text-white"
+                        }`}
+                    >
+                        {item.name}
+                        {activeTab === item.name && (
+                            <motion.div 
+                                layoutId="activeTab"
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 shadow-[0_0_10px_#60a5fa]"
+                            />
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Content Placeholder */}
+            <div className="py-10 h-screen overflow-y-scroll text-slate-500 text-center italic flex  bg-white">
+                <div className="w-">
+                <p>Showing {activeTab} content...</p>
+                </div>
+                <div className=""></div>
+                
+            </div>
         </motion.div>
     )
 }

@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 dotenv.config()
 
 const app = express();
+connectionDb();
 const server = createServer(app);
 
 const allowedOrigins = [
@@ -38,7 +39,6 @@ app.use(cors({
   credentials: true
 }));
 
-connectionDb();
 
 
 

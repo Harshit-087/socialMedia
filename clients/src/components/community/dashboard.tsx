@@ -1,88 +1,110 @@
 "use client"
-import {useState} from "react"
+import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { CiMenuBurger } from "react-icons/ci";
 import { GiFlexibleStar } from "react-icons/gi";
 import CommunityProfile from "./community";
+import CreateCommunity from "./createcommunity";
+import SidebarWidgets from "./trendingCommunity";
+import SidebarFeatures from "./sidebarFeature";
 
 export default function CommunityDashboard({
-    Sidebar,value
-}:{
-    Sidebar:()=>void,
-    value:boolean
-}){
-   
-    const [openCommunity,setOpenCommunity] = useState<string|null>(null)
+    Sidebar, value, community, open, create, openCreate
+}: {
+    Sidebar: () => void,
+    value: boolean,
+    community: (v: string|null) => void,
+    open: string | null,
+    create: (v: boolean) => void,
+    openCreate: boolean | null
+}) {
 
-    const handleCommunity=(value:string)=>{
-        setOpenCommunity(value);
-    }
-
-    return(
-        <div className="w-full flex flex-col bg-[#080421bb]">
-         {/* navbar hide on lg */}
-            <div className ="flex w-full h-10 lg:flex-1 border-b-2 border-gray-800" >
+    return (
+        /* Fixed height to screen to prevent double scrollbars */
+        <div className="w-full h-screen flex flex-col bg-[#0a052e] overflow-hidden">
+            
+            {/* Navbar */}
+            <div className="flex w-full h-16 shrink-0 items-center px-4 border-b border-white/10">
                 <CiMenuBurger 
-                size={20} 
-                className="w-12 self-center text-white" 
-                onClick={()=>{Sidebar()}}
+                    size={24} 
+                    className="cursor-pointer text-white lg:hidden" 
+                    onClick={() => Sidebar()}
                 />
-                <h1 className="self-center flex justify-center text-white  flex-1 mx-auto">culthub</h1>
+                <h1 className="flex-1 text-center lg:text-left lg:px-4 text-white font-bold text-xl tracking-wider">culthub</h1>
             </div>
 
-        <div className="w-full lg:flex-1 h-screen overflow-y-scroll px-2  relative">
-    
-            {/* community */}
-         <div className={` text-white  flex-col gap-2 mt-4 ${openCommunity?"hidden":"flex"}`}>
-            <h1 className="text-3xl flex gap-1"> <GiFlexibleStar size={30} className="text-white"/> Discover Communities</h1>
-            <p className="text-xs tracking-wide">Find your tribe and connect with like-minded people</p>
+            {/* Main Content Area */}
+            <div className="flex flex-1 overflow-hidden lg:grid-cols-3">
 
-            {/* all or my community */}
-            <div className="flex gap-2 my-4 text-white">
-                <button className="bg-transparent  hover:bg-blue-700 rounded-lg border-2 border-gray-400 px-2 py-1">All Communities</button>
-                <button className="hover:bg-blue-700 rounded-lg border-2 border-gray-400 px-2 py-1">My communities</button>
-            </div>
+                {/* leftmost for lg scrren side panel */}
+                <div className="w-lg h-full hidden lg:flex flex-col ">
+                <SidebarFeatures Sidebar={Sidebar} value={value} community={community} create={create}/>
+                </div>
+
+                {/* Left Side: Feed (Scrollable) */}
+                <div className="w-full md:w-[60%]  lg:w-[65%] h-full overflow-y-auto px-4 pb-10 custom-scrollbar">
+                    
+                    <div className={`flex-col gap-2 mt-6 ${open ? "hidden" : "flex"}`}>
+                        <h1 className="text-3xl font-bold text-white flex items-center gap-3"> 
+                            <GiFlexibleStar size={35} className="text-emerald-400"/> 
+                            Discover Communities
+                        </h1>
+                        <p className="text-slate-400 text-sm ml-1">Find your tribe and connect with like-minded people</p>
+
+                        {/* Filter Buttons */}
+                        <div className="flex gap-3 my-6">
+                            <button className="bg-blue-600 text-white rounded-full px-5 py-2 text-sm font-medium transition hover:bg-blue-700">All Communities</button>
+                            <button className="bg-white/5 text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition hover:bg-white/10">My communities</button>
+                        </div>
           
-          {/* community group map it  */}
-            <div id={"community1"} className="w-full h-48 px-3 py-1 " onClick={()=>handleCommunity("comunity1")}>
-                <div className="w-full h-full border-2 border-transparent rounded-lg shadow-2xl overflow-hidden relative">
+                        {/* Community Card Grid */}
+                        <div className="grid grid-cols-1 gap-6 ">
+                            {/* Card Item */}
 
-                   {/* bg image upper */}
-                   <div className="relative w-full h-2/3  overflow-hidden">
-                    <Image src="/images/qunt.jpg" alt ="/image" fill className="object-cover scale-105"/>
-                   </div>
+                            <div 
+                                className="group relative w-full  h-64 rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-white/20 transition-all"
+                                onClick={() => community("comunity1")}
+                            >
+                                {/* Background Image with Overlay */}
+                                <Image src="/images/qunt.jpg" alt="bg" fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-                   {/* lower part */}
-                   <div className="w-full h-1/2 flex bg-[#48484ee7] rounded-t-lg absolute bottom-0 right-0 z-30 backdrop-blur-2xl">
-
-                   <div className="w-1/3 h-full  flex justify-center">
-                    {/* middle user */}
-                   <div className="relative w-10 h-10 aspect-square rounded-lg overflow-hidden shadow-xl -translate-y-4">
-                <Image src="/images/user.png" alt="images" fill className="object-contain"/>
-                </div>
-
-                </div>
-                    <div className="flex-1">
-                    <h3 >Tech Inovators</h3>
-                    <p className="text-xs">Discussing the latest in AI,web3 and emerging Technologies  </p>
-                    <span className="text-xs">10000 members</span>
+                                {/* Info Content */}
+                                <div className="absolute bottom-0 w-full p-6 flex items-end gap-4 backdrop-blur-md bg-white/10 border-t border-white/10">
+                                    <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl -translate-y-2">
+                                        <Image src="/images/user.png" alt="user" fill className="object-cover"/>
+                                    </div>
+                                    <div className="flex-1 pb-1">
+                                        <h3 className="text-white font-bold text-lg">Tech Innovators</h3>
+                                        <p className="text-slate-300 text-xs line-clamp-1">Discussing AI, web3 and emerging technologies</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">10,000 members</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                   </div>
-
+                    
                 </div>
-                
+
+                {/* Right Side: Sidebar Widgets (Hidden on Mobile) */}
+                {!open &&(
+                   <div className="hidden md:flex md:w-[40%] lg:w-[35%] h-full overflow-y-auto  px-6 items-start py-6 custom-scrollbar">
+                   <SidebarWidgets />
+                </div>
+                )}
+             
+
             </div>
-         </div>
+            
+            {/* Community Detail View */}
+                    {open && <CommunityProfile />}
 
-        
-
-        {/* the specific community pops up */}
-        {openCommunity &&(
-        <CommunityProfile/>)}
-
-        </div>
+            {/* Overlays */}
+            {openCreate && <CreateCommunity closeCreate={create} />}
         </div>
     )
 }

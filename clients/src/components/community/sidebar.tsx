@@ -1,3 +1,5 @@
+"use client"
+import {useState}from "react"
 import { FaArrowAltCircleLeft } from "react-icons/fa";
 import { motion, AnimatePresence, transform } from "framer-motion"
 import { IoMdRocket } from "react-icons/io";
@@ -6,68 +8,49 @@ import { IoAddCircleOutline } from "react-icons/io5";
 import { GoHomeFill } from "react-icons/go";
 import { FaGlobeAmericas } from "react-icons/fa";
 import Link from "next/link"
+import SidebarFeatures from "./sidebarFeature";
+// ... keep imports same
 
 export default function Sidebar({
-        Sidebar,value
-}:{
-    Sidebar:()=>void,
-    value:boolean
-}){
-    return(
-        <div className={`w-full h-full flex fixed left-0 top-0 bg-transparent max-md:z-50 ${value?"backdrop-blur-xs":null} lg:w-1/3`}
-        onClick={Sidebar}>
-         {/* sidebar */}
-         {/* <AnimatePresence> */}
-         <motion.div 
-         initial={{x:"-100%",opacity:0}}
-         animate={{x:0,opacity:1 }}
-         exit={{x:"-100%",opacity:0}}
-           transition={{ type: "spring", stiffness:200,damping:25}}       
-         className="max-sm:w-2/3 w-3/7 h-full lg:w-2xl  flex flex-col border-r-2 border-gray-400 bg-[#120c2cdd]"
-         onClick={(e)=>e.stopPropagation()}
-         >
-          <h2 className="w-full h-12 text-xl ml-5 flex items-center font-serif text-white">culthub</h2>
-         
-         <div className="w-full  h-12 border-b-2 border-gray-400 py-1 px-4">
-          <input 
-          type="text"
-        //   value={}
-        //   onChange={} 
-          placeholder="search" 
-          className="w-full  h-full px-2 py-auto border-2 border-gray-400 rounded-lg mx-auto text-white"/>
-          </div>
+    Sidebar, value, community, create
+}: {
+    Sidebar: () => void,
+    value: boolean,
+    community: (v: string | null) => void,
+    create: (v: boolean) => void
+}) {
 
-         <div className="flex flex-col px-4 my-2 gap-1">
-          <div className="w-full h-10  bg-blue-400 mx-auto  rounded-lg flex  items-center px-4  hover:bg-blue-700 hover:scale-105 text-white gap-2">
-           <GoHomeFill size={30}/>
-           <Link href="/account/community">  <p>Home</p></Link>
-            </div>
-           <div className="w-full h-10  bg-blue-400 mx-auto  rounded-lg flex  items-center px-4  hover:bg-blue-700 hover:scale-105 text-white gap-2">
-            <FaGlobeAmericas size={30}/>
-            <p>Discover</p></div>
-     </div>
-     <p className="ml-5 text-white">My communities</p>
+    return (
+        /* 1. Added z-[100] globally so it's always on top of the dashboard and profile */
+        /* 2. Changed bg-transparent to bg-black/40 when open to dim the background */
+        <div 
+            className={`fixed inset-0 w-full h-full transition-opacity duration-300 z-[100] ${
+                value ? "visible bg-black/40 backdrop-blur-sm" : "invisible opacity-0"
+            }`}
+            onClick={Sidebar}
+        >
+            {/* Sidebar Container */}
+            <AnimatePresence>
+                {value && (
+                    <motion.div 
+                        initial={{ x: "-100%" }}
+                        animate={{ x: 0 }}
+                        exit={{ x: "-100%" }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        /* 3. Added relative and a high z-index inside the motion div as well */
+                        className="relative z-[101] w-[280px] sm:w-[350px] h-full flex flex-col border-r border-white/10 bg-[#0f0a24] shadow-2xl shadow-black"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="p-6 flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-white tracking-tighter">culthub</h2>
+                        </div>
 
-     <div className="flex flex-col w-full  py-2 px-3 gap-1 text-white">
-        <div className="w-full h-16 mx-auto rounded-lg bg-blue-400 flex items-center px-2 gap-2  hover:bg-blue-700 hover:scale-105">
-            <IoMdRocket size={30} className=""/>
-           <p  >Tech Inovators <br/><span className="text-sm font-serif">100 members</span></p>
-           
-        </div>
-        <div className="w-full h-16 mx-auto rounded-lg bg-blue-400 flex items-center px-2 gap-2 hover:bg-blue-700 hover:scale-105 transition-all duration-200">
-            <IoGameControllerOutline size={30} className=""/>
-           <p>Gaming Giants <br/><span className="text-sm font-serif">100 members</span></p>
-        </div>
-        <div className="w-full h-16 mx-auto rounded-lg bg-blue-400 flex justify-center items-center px-2 gap-2 hover:bg-blue-700 hover:scale-105 transition-all duration-200">
-            <IoAddCircleOutline size={30} className=""/>
-           <p>create community</p>
-        </div>
-     </div>
-
-       {/* <FaArrowAltCircleLeft size={20} className="text-white" onClick={Sidebar}/>    */}
-       </motion.div>
-       {/* </AnimatePresence> */}
-               
+                        {/* Search bar features , searh ,home,my community*/}
+                        <SidebarFeatures Sidebar={Sidebar} value={value} community={community} create={create} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
