@@ -190,12 +190,12 @@ export default function ChatDashboard() {
   }
 
   return (
-    <div className="h-screen w-full bg-zinc-900 flex">
+    <div className="h-screen w-full bg-zinc-900 flex overflow-hidden">
       {/* Left: Conversation List */}
 <div
   className={`${
     mobileOpen ? "hidden" : "flex"
-  } w-full md:flex md:w-60 lg:w-80 border-r border-zinc-800 flex-col bg-zinc-900`}
+  }  w-full md:flex md:w-60 lg:w-80 border-r border-zinc-800 flex-col bg-zinc-900`}
 >
   <div className="h-14 px-2 flex items-center border-b border-zinc-800">
     <Link href="/account/dashboard">
@@ -218,7 +218,7 @@ export default function ChatDashboard() {
     </label>
   </div>
 
-  <div className="flex-1 overflow-y-auto  py-1">
+  <div className="flex-1 overflow-y-auto  py-1 ">
     {followingLoading &&  <p className="text-white px-4">Loading contacts...</p>}
          {contactList?.map((item) => (
       <button
@@ -243,7 +243,7 @@ export default function ChatDashboard() {
     {openChat ?
       <ChatRight mobileOpen={mobileOpen} setMobile={handleScreen} activeChat={activeChat} submit={handleSubmit}/>
     :
-    <div className="flex flex-1 items-center justify-center bg-gradient-to-b from-zinc-950 to-zinc-900">
+    <div className={`hidden md:flex flex-1 items-center justify-center bg-gradient-to-b from-zinc-950 to-zinc-900`}>
       <div className="text-center max-w-sm px-6">
 
         {/* Icon */}

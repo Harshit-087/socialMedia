@@ -86,10 +86,13 @@ io.on("connection", (socket) => {
 });
 
 
+// connect kafka first 
 
-server.listen(5000,"0.0.0.0", () => {
+server.listen(5000,"0.0.0.0", () => {         // then start server..
   console.log("Server running on port 5000");
 });
+
+
 
 
 

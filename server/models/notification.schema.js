@@ -11,7 +11,7 @@ const notifySchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    type:String ,       // "like" | "comment" | "follow" | "mention" | "message"
+    type:{type:String} ,       // "like" | "comment" | "follow" | "mention" | "message"
     postId:{
       type:mongoose.Schema.Types.ObjectId,
       ref:"post"
