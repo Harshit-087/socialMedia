@@ -171,7 +171,7 @@ useEffect (()=>{
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-5 flex flex-col items-center justify-start bg-black/70 backdrop-blur-md p-6"
+    className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black/70 backdrop-blur-md p-6"
   >
     {/* Header Bar */}
     <div className="flex items-center w-full max-w-xl mt-10 bg-gray-800/80 rounded-full px-4 py-2 shadow-lg ring-1 ring-gray-700">
@@ -337,7 +337,7 @@ useEffect (()=>{
 
               {/* Dropdown Menu */}
               <div
-                className={`absolute max-sm:right-0 mt-2 w-36 max-md:right-5 lg:top-24 lg:-translate-9 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
+                className={`absolute max-sm:right-0 mt-2 w-36 z-50 max-md:right-5 lg:top-24 lg:-translate-9 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
                   loading ? "max-h-60" : "max-h-0 overflow-hidden"
                 }`}
               >
@@ -348,15 +348,13 @@ useEffect (()=>{
                     </li>
                   </Link>
                   <button
-                    onClick={() => {
-                      dispatch(addLogout());
-                      window.location.reload();
-                    }}
-                    className="flex self-start">
-                    <li className="px-4 py-2  hover:bg-gray-100 cursor-pointer">
-                      Logout
-                    </li>
-                  </button>
+  onClick={() => {
+    dispatch(addLogout());
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+>
+  Logout
+</button>
                   <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                     Help
                   </li>

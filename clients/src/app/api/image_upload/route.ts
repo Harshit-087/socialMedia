@@ -5,13 +5,14 @@ import axios from "axios"
 
 
 
-interface CloudinaryUploadResponse {
+export interface CloudinaryUploadResponse {
   public_id: string;
   secure_url: string;
   url: string;
   format: string;
   width: number;
   height: number;
+  resource_type:string
 }
 
 export async function POST(request: NextRequest){
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest){
       if(!file || !(file instanceof File)){
         return NextResponse.json({error:"file not provided"},{status:400})
       }
+      
 
     if(!userId){
       return NextResponse.json({error:"authorization error"},{status:401})

@@ -1,161 +1,164 @@
 "use client";
-import {X} from "lucide-react"
+import { X, Film, Grid, UserSquare2, PlayCircle, Plus } from "lucide-react";
 import { useState } from "react";
 import Videos from "@/components/video/videos";
 import Posts from "@/components/postcard/posts";
-import {useUser} from "@/hooks/userhook";
+import { useUser } from "@/hooks/userhook";
 import { storyQuery } from "@/app/api/storyQuery";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { userQuery } from "@/app/api/userQuery";
 
-export default function SlotsComponent({id}:{id:string}){
-  
-      const {userId} = useUser();
-       const [stories, setStories] = useState<boolean>(false);  
-         const [createStory , setCreateStory] =useState<boolean>(false);
-         const [activeTab,setActiveTab]=useState<"stories" | "posts" | "video"|"tagged">("posts")
+type TabType = "stories" | "posts" | "video" | "tagged";
 
+export default function SlotsComponent({ id }: { id: string }) {
+  const { userId ,token} = useUser();
+  const [createStory, setCreateStory] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<TabType>("posts");
 
-           const {data,isLoading,error}=useQuery({
-    queryKey:["profile",id],
-    queryFn:async({queryKey})=>{
-      const [,id]=queryKey as [string ,string |undefined]
-      if(!id) return;
-      const res = await userQuery.fetchProfile(id)
-      //  toast.success(res.data.msg)
+  const { data, isLoading } = useQuery({
+    queryKey: ["profile", id],
+    queryFn: async ({ queryKey }) => {
+      const [, id] = queryKey as [string, string | undefined];
+      if (!id) return;
+      const res = await userQuery.fetchProfile(id);
       return res.data;
-    }
-  })
-  
+    },
+  });
 
-           const uploadMutation=useMutation({
-    mutationFn:async(formdata:FormData)=>{
-   return await storyQuery.upload(formdata)
-    }
-  })
+  const uploadMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await storyQuery.upload(formData);
+    },
+    onSuccess: () => setCreateStory(false),
+  });
 
-
-    const handleStorySubmit=async(e:React.FormEvent)=>{
+  const handleStorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = (e.currentTarget as HTMLFormElement).storyFile as HTMLInputElement;
     const file = value.files?.[0];
-    console.log("story file",file)
-    if(!file) throw new Error("no story is provided")
-    const formdata = new FormData();
-    formdata.append("story",file)
-    formdata.append("id",userId)
-    console.log("formdata",formdata)
-   uploadMutation.mutate(formdata)
-  }
+    if (!file) return;
 
-    return(
-        <>
-        <nav className="w-full max-w-3xl mt-10">
-          <ul className="flex justify-around items-center bg-zinc-800 border border-zinc-700 rounded-xl shadow-lg overflow-hidden text-sm font-medium">
-            <li className={`w-full text-center py-3 hover:bg-zinc-700 cursor-pointer transition ${
-                activeTab==="stories" ?  "bg-blue-600 hover:bg-blue-500":"hover:bg-zinc-700" 
-            }`}
-            onClick={()=>{setStories(true);
-            
-            setActiveTab("stories")}}>
-             Stories
-            </li>
+    const formData = new FormData();
+    formData.append("story", file);
+    formData.append("userId", userId);
+    formData.append("token",token)
+    uploadMutation.mutate(formData);
+  };
+
+  return (
+    <div className="w-full max-w-4xl flex flex-col items-center">
+      {/* NAVIGATION TABS */}
+      <nav className="w-full border-t border-zinc-800 mt-10">
+        <ul className="flex justify-center gap-8 md:gap-16">
+          {[
+            { id: "posts", label: "POSTS", icon: <Grid size={18} /> },
+            { id: "stories", label: "STORIES", icon: <PlayCircle size={18} /> },
+            { id: "video", label: "VIDEOS", icon: <Film size={18} /> },
+            { id: "tagged", label: "TAGGED", icon: <UserSquare2 size={18} /> },
+          ].map((tab) => (
             <li
-              className={`w-full text-center py-3 cursor-pointer transition ${
-                activeTab==="posts" ? "bg-blue-600 hover:bg-blue-500" : "hover:bg-zinc-700"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`flex items-center gap-2 py-4 cursor-pointer transition-all border-t-2 -mt-[2px] ${
+                activeTab === tab.id
+                  ? "border-white text-white"
+                  : "border-transparent text-zinc-500 hover:text-zinc-300"
               }`}
-              onClick={() =>{ setActiveTab("posts");setStories(false)}}
             >
-              Posts
+              {tab.icon}
+              <span className="text-xs font-bold tracking-widest">{tab.label}</span>
             </li>
-            <li className={`w-full text-center py-3 cursor-pointer transition ${
-                activeTab==="video" ? "bg-blue-600 hover:bg-blue-500" : "hover:bg-zinc-700"
-              }`}
-              onClick={()=>{setActiveTab("video"); setStories(false)}}>
-              Videos
-            </li>
-            <li className={`w-full text-center py-3 cursor-pointer transition ${
-                activeTab==="tagged" ? "bg-blue-600 hover:bg-blue-500" : "hover:bg-zinc-700"
-              }`} 
-              onClick={()=>{setActiveTab("tagged");setStories(false)}}>
-              Tagged
-            </li>
-          </ul>
-        </nav>
+          ))}
+        </ul>
+      </nav>
 
-        {/* Posts Section */}
-        <section className="w-full  max-w-3xl mt-6 px-4 ">
-          {(stories && userId===id )? 
-          <div className="w-full h-15 border-2 border-gray-200 px-4  rounded-lg flex justify-between items-center">
-            <p className="text-lg">create story</p>
-            <button onClick={()=>setCreateStory(true)} className="bg-blue-500 rounded-lg w-24 h-8  " >create</button></div>:null}
-          
-          {/* stories */}
-          {activeTab==="stories" ?(
-            <div className="animate-fadeIn">
-              <p className="text-center text-gray-400">No stories to show</p>
+      {/* CONTENT SECTION */}
+      <section className="w-full mt-8 px-4">
+        {activeTab === "stories" && (
+          <div className="flex flex-col items-center">
+            {userId === id && (
+              <button
+                onClick={() => setCreateStory(true)}
+                className="mb-8 flex items-center gap-2 px-6 py-3 bg-white text-black rounded-full font-bold hover:bg-zinc-200 transition active:scale-95"
+              >
+                <Plus size={20} />
+                Create Story
+              </button>
+            )}
+            <div className="text-zinc-500 py-20 text-center">
+              <PlayCircle size={48} className="mx-auto mb-4 opacity-20" />
+              <p>No active stories</p>
             </div>
-          ):null}
+          </div>
+        )}
 
-          {/* posts */}
-          {activeTab==="posts" ? (
-            <div className="animate-fadeIn">
-              {data?.data?.[0]?._id && <Posts userid={data.data[0]._id} />}  
+        {activeTab === "posts" && (
+          <div className="animate-in fade-in duration-500">
+            {data?.data?.[0]?._id ? (
+              <Posts userid={data.data[0]._id} />
+            ) : (
+              <p className="text-center text-zinc-500 py-20">No posts yet</p>
+            )}
+          </div>
+        )}
 
-            </div>
-          ):null}
+        {activeTab === "video" && (
+          <div className="animate-in fade-in duration-500">
+            <Videos />
+          </div>
+        )}
 
-          {/* videos */}
-          {activeTab==="video" ? (
-            <div className="animate-fadeIn">
-              <Videos/>
-            </div>
-          ):null}
+        {activeTab === "tagged" && (
+          <div className="text-zinc-500 py-20 text-center animate-in fade-in duration-500">
+            <UserSquare2 size={48} className="mx-auto mb-4 opacity-20" />
+            <p>No tagged photos</p>
+          </div>
+        )}
+      </section>
 
-          {/* tagged */}
-          {activeTab==="tagged" ? (
-            <div className="animate-fadeIn">
-              <p className="text-center text-gray-400">No tagged posts to show</p>
-            </div>
-          ):null}
+      {/* UPLOAD MODAL */}
+      {createStory && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg bg-[#18181b] border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden">
+            <button 
+              onClick={() => setCreateStory(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition"
+            >
+              <X size={24} />
+            </button>
+            
+            <form onSubmit={handleStorySubmit} className="p-8">
+              <h3 className="text-xl font-bold text-white mb-6">New Story</h3>
+              
+              <label
+                htmlFor="storyImage"
+                className="group flex flex-col items-center justify-center w-full h-80 border-2 border-dashed border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-600 hover:bg-zinc-900/50 transition-all mb-6"
+              >
+                <div className="flex flex-col items-center p-6 text-center">
+                  <PlayCircle size={48} className="text-zinc-600 group-hover:text-blue-500 mb-4 transition-colors" />
+                  <span className="text-zinc-400 font-medium mb-1">Select media to upload</span>
+                  <p className="text-xs text-zinc-600">High quality photos or videos</p>
+                </div>
+                <input
+                  type="file"
+                  id="storyImage"
+                  name="storyFile"
+                  accept="image/*,video/*"
+                  className="hidden"
+                />
+              </label>
 
-        </section>
-
-        {createStory?
-        <form
-  onSubmit={handleStorySubmit}
-  encType="multipart/form-data"
-  className="flex flex-col items-center gap-6 py-6 px-8"
->
-  {/* Story Upload Box */}
-  <label
-    htmlFor="storyImage"
-    className="flex flex-col items-center justify-center w-full h-60 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition"
-  >
-    <span className="text-gray-400 text-lg font-medium">
-      Tap or drag to upload your story
-    </span>
-    <p className="text-sm text-gray-400">Supported formats: JPG, PNG, MP4</p>
-    <input
-      type="file"
-      id="storyImage"
-      name="storyFile"
-      accept="image/*,video/*"
-      className="hidden"
-    />
-  </label>
-
-  
-
-  {/* Submit Button */}
-  <button
-    type="submit"
-    className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-md transition active:scale-95"
-  >
-    Upload Story
-  </button>
-</form>
-    :null}
-    </>
-    )
+              <button
+                type="submit"
+                disabled={uploadMutation.isPending}
+                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold rounded-xl transition shadow-lg shadow-blue-900/20 active:scale-[0.98]"
+              >
+                {uploadMutation.isPending ? "Uploading..." : "Share to Story"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

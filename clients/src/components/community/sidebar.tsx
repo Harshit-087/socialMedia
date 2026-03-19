@@ -9,7 +9,6 @@ import { GoHomeFill } from "react-icons/go";
 import { FaGlobeAmericas } from "react-icons/fa";
 import Link from "next/link"
 import SidebarFeatures from "./sidebarFeature";
-// ... keep imports same
 
 export default function Sidebar({
     Sidebar, value, community, create
@@ -20,11 +19,12 @@ export default function Sidebar({
     create: (v: boolean) => void
 }) {
 
+
     return (
         /* 1. Added z-[100] globally so it's always on top of the dashboard and profile */
         /* 2. Changed bg-transparent to bg-black/40 when open to dim the background */
         <div 
-            className={`fixed inset-0 w-full h-full transition-opacity duration-300 z-[100] ${
+            className={`fixed inset-0 w-full h-full transition-opacity duration-300 z-[100] lg:hidden ${
                 value ? "visible bg-black/40 backdrop-blur-sm" : "invisible opacity-0"
             }`}
             onClick={Sidebar}
@@ -38,7 +38,7 @@ export default function Sidebar({
                         exit={{ x: "-100%" }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         /* 3. Added relative and a high z-index inside the motion div as well */
-                        className="relative z-[101] w-[280px] sm:w-[350px] h-full flex flex-col border-r border-white/10 bg-[#0f0a24] shadow-2xl shadow-black"
+                        className="relative z-[101] w-[280px] sm:w-[350px]  h-full flex flex-col border-r border-white/10 bg-[#0f0a24] shadow-2xl shadow-black"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}

@@ -3,9 +3,19 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { FaRegBell, FaShareAlt } from "react-icons/fa";
 import { useState } from "react";
+import {useQuery,useMutation} from "@tanstack/react-query"
+import {communityQuery} from "@/app/api/communityQuery"
+import {Item} from "./dashboard"
+import { useUser } from "@/hooks/userhook";
+import { QueryClient } from "@tanstack/react-query";
+import Post from "./post/post";
 
-export default function CommunityProfile() {
+
+export default function CommunityProfile({communityId}:{communityId:string}) {
     const [activeTab, setActiveTab] = useState("Post");
+    const {userId} = useUser();
+    const queryClient =new  QueryClient();
+   
 
     const tabs = [
         { name: "Post" },
@@ -15,6 +25,59 @@ export default function CommunityProfile() {
         { name: "Members" },
         { name: "About" },
     ];
+
+ const {data,isLoading,isError} = useQuery({
+    queryKey:["community",communityId],
+    queryFn:async({queryKey})=>{
+        const [ _,communityId] = queryKey as [string , string|undefined]
+        if(!communityId) return ;
+        const res = await communityQuery.openCommunity(communityId)
+        console.log("response",res.data.data);
+        return res.data.data;
+    }
+ })
+
+  const memberMutation = useMutation({
+        mutationFn:async({id,userId}:{id:string,userId:string})=>{
+            if(!id || !userId) return;
+            return await communityQuery.joinCommunity(id,userId)
+        },
+        onSuccess:(res)=>{
+            console.log(res?.data?.message);
+    queryClient.invalidateQueries({queryKey:["community",communityId]})
+    window.location.reload();
+        },
+        onError:(error)=>{
+            console.log(error.message);
+        }
+    })
+
+
+      const deleteMutation = useMutation({
+        mutationFn:async(id:string)=>{
+            if(!id ) return;
+            return await communityQuery.deleteCommunity(id)
+        },
+        onSuccess:(res)=>{
+            console.log(res?.data?.message);
+          queryClient.invalidateQueries({queryKey:["community",communityId]})
+          window.location.reload()
+        },
+        onError:(error)=>{
+            console.log(error.message);
+        }
+    })
+
+   const handleJoinCommunity=async(id:string)=>{
+    
+    memberMutation.mutate({id,userId});
+   }
+    
+   const handleDeleteCommunity=async(id:string)=>{
+    
+    deleteMutation.mutate(id)
+     
+   }
 
     return (
         <motion.div
@@ -26,13 +89,14 @@ export default function CommunityProfile() {
             className="w-full min-h-full bg-transparent pt-4 z-30"
         >
             {/* Header Card */}
-            <div className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
+            {data && data.map((item:Item)=>(
+<div key={item._id} className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem]  overflow-hidden shadow-2xl border border-white/10">
                 
                 {/* Banner Image */}
                 <div className="relative w-full h-full">
                     <Image 
-                        src="/images/qunt.jpg" 
-                        alt="Community Banner" 
+                        src={item.banner_url} 
+                        alt="/images/qunt.jpg"
                         fill 
                         className="object-cover"
                         priority
@@ -48,19 +112,29 @@ export default function CommunityProfile() {
                         {/* Top Row: Title & Avatar */}
                         <div className="flex items-center gap-4">
                             <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30 shrink-0">
-                                <Image src="/images/user.png" alt="Community Logo" fill className="object-cover" />
+                                <Image src={item.icon_url} alt="/images/user.png" fill className="object-cover" />
                             </div>
                             <div className="text-white">
-                                <h2 className="text-xl md:text-2xl font-bold leading-tight">Tech Innovators</h2>
+                                <h2 className="text-xl md:text-2xl font-bold leading-tight">{item.communityName} </h2>
                                 <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">120,000 members</p>
+                                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">{item.privacy}</p>
                             </div>
                         </div>
 
                         {/* Bottom Row: Actions */}
                         <div className="flex items-center gap-3">
-                            <button className="flex-1 md:flex-none md:w-48 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                           {item.AdminId != userId? 
+                           <button 
+                           onClick={()=>handleJoinCommunity(item._id)}
+                           className="flex-1 md:flex-none md:w-48 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
                                 Join Community
                             </button>
+                           :
+                           <button 
+                           onClick={()=>handleDeleteCommunity(item._id)}
+                           className="flex-1 md:flex-none md:w-48 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                                Delete Community
+                            </button>} 
                             <button className="p-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors">
                                 <FaRegBell size={18} />
                             </button>
@@ -72,14 +146,16 @@ export default function CommunityProfile() {
                     </div>
                 </div>
             </div>
+            ))}
+            
 
             {/* Navigation Tabs */}
-            <div className="mt-6 border-b border-white/10 flex flex-wrap overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="mt-6 border-b border-white/10 flex md:flex-wrap overflow-x-auto no-scrollbar scroll-smooth">
                 {tabs.map((item) => (
                     <button
                         key={item.name}
                         onClick={() => setActiveTab(item.name)}
-                        className={`px-6 py-3 text-sm font-semibold transition-all relative shrink-0 ${
+                        className={`px-6 py-3 text-sm font-semibold transition-all relative shrink-0 max-md:overflow-x-auto ${
                             activeTab === item.name ? "text-blue-400" : "text-slate-400 hover:text-white"
                         }`}
                     >
@@ -95,11 +171,13 @@ export default function CommunityProfile() {
             </div>
 
             {/* Content Placeholder */}
-            <div className="py-10 h-screen overflow-y-scroll text-slate-500 text-center italic flex  bg-white">
-                <div className="w-">
-                <p>Showing {activeTab} content...</p>
+            <div className=" h-screen grid grid-col-3  overflow-y-scroll text-slate-500 text-center italic   bg-white">
+                <div className="w-full">
+                    {activeTab=="Post" ?
+                    <Post/>
+                    :<p>Showing {activeTab} content...</p>}
                 </div>
-                <div className=""></div>
+                {/* <div className=""></div> */}
                 
             </div>
         </motion.div>

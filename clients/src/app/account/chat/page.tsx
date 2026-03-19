@@ -6,13 +6,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/userhook";
 import { followQuery } from "@/app/api/followQuery";
 import { GetSocket } from "@/lib/socket";
-import { FaCircleArrowLeft } from "react-icons/fa6";
 import Link from "next/link";
 import Image from "next/image";
 import { Socket } from "socket.io-client";
 import { CiSearch } from "react-icons/ci";
 import ChatRight from "@/components/chat/chatRight";
 import { BsChatDots } from "react-icons/bs"
+import SidebarChat from "@/components/chat/sidebar";
+import { CiMenuBurger } from "react-icons/ci";
+import { FaCircleArrowLeft } from "react-icons/fa6";
+import { AnimatePresence } from "framer-motion";
+import Footer from "@/components/footer/footer";
 
 type Account = {
   followerId?: {
@@ -31,6 +35,8 @@ type Account = {
 export default function ChatDashboard() {
   const { userId } = useUser();
   const queryClient = useQueryClient();
+  //open sidebar
+  const [openSidebar,setOpenSidebar ] =useState<boolean|null>(false);
 
   // creating all contact to show on left side 
   const [contactList , setContactList ] =useState<Account[] >([]);
@@ -189,6 +195,12 @@ export default function ChatDashboard() {
     setMobileOpen(v);
   }
 
+  //open sidebar
+  const handleOpenSidebar = ()=>{
+    setOpenSidebar(prev =>!prev);
+  }
+
+
   return (
     <div className="h-screen w-full bg-zinc-900 flex overflow-hidden">
       {/* Left: Conversation List */}
@@ -198,9 +210,18 @@ export default function ChatDashboard() {
   }  w-full md:flex md:w-60 lg:w-80 border-r border-zinc-800 flex-col bg-zinc-900`}
 >
   <div className="h-14 px-2 flex items-center border-b border-zinc-800">
-    <Link href="/account/dashboard">
-      <FaCircleArrowLeft size={20} className="text-white hover:text-green-400 transition-colors" />
-    </Link>
+    <Link href="/account/dashboard"><FaCircleArrowLeft
+                  size={20}
+                  className="text-gray-300 hover:text-green-400 max-md:block hidden"
+                />
+                </Link>
+       {/*here */}
+      <CiMenuBurger 
+                          size={24} 
+                          className="cursor-pointer text-white max-md:hidden" 
+                          onClick={() =>handleOpenSidebar() }
+                      />
+    
     <h1 className="px-4 text-white font-semibold text-lg">Chats</h1>
   </div>
 
@@ -218,7 +239,7 @@ export default function ChatDashboard() {
     </label>
   </div>
 
-  <div className="flex-1 overflow-y-auto  py-1 ">
+  <div className="flex-1 overflow-y-auto  py-1 relative overflow-x-hidden ">
     {followingLoading &&  <p className="text-white px-4">Loading contacts...</p>}
          {contactList?.map((item) => (
       <button
@@ -230,13 +251,25 @@ export default function ChatDashboard() {
           <Image src={item.followerId?.profileImage || item.followingId?.profileImage || "/images/user.png"} alt={"/images/user.png"} fill className="object-cover" />
         </div>
 
-        <div className="flex-1 text-left">
+        <div className="flex-1 text-left ">
           <h2 className="text-sm font-medium">{item.followerId?.username || item.followingId?.username}</h2>
           <span className="text-xs text-zinc-400 italic">Online / last message</span>
         </div>
       </button>
+      
     ))}
+    <div className="lg:hidden fixed text-white bg-white bottom-0 w-full h-12 p-4">
+      <Footer/>
+    </div>
+   {/* <div className=" ">
+      <div className="flex items-center gap-2 p-2 border-t-2 border-dashed">
+        <Cog size={20}
+         className={`transition-transform duration-300 group-hover:scale-110 `} />
+        <p className="font-serif text-xl"> Setting</p>
+      </div>
+    </div> */}
   </div>
+   
 </div>
 
     {/* Right: Chat Window */}
@@ -265,7 +298,9 @@ export default function ChatDashboard() {
       </div>
     </div>}
    
-
+  <AnimatePresence>
+{openSidebar&&(<SidebarChat isOpen={openSidebar} open={handleOpenSidebar}/>)}
+    </AnimatePresence>
     </div>
   );
 }

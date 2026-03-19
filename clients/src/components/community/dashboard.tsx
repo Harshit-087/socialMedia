@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import Image from "next/image"
 import { CiMenuBurger } from "react-icons/ci";
 import { GiFlexibleStar } from "react-icons/gi";
@@ -7,6 +7,24 @@ import CommunityProfile from "./community";
 import CreateCommunity from "./createcommunity";
 import SidebarWidgets from "./trendingCommunity";
 import SidebarFeatures from "./sidebarFeature";
+
+
+import AllCommunity from "./allcommunity";
+import MyCommunity from "./mycommunity";
+
+
+
+export type Item={
+    _id:string,
+    AdminId:string,
+    banner_url:string,
+    icon_url:string,
+    communityName:string,
+    description:string,
+    category:string,
+    privacy:string,
+    theme:string
+}
 
 export default function CommunityDashboard({
     Sidebar, value, community, open, create, openCreate
@@ -18,6 +36,17 @@ export default function CommunityDashboard({
     create: (v: boolean) => void,
     openCreate: boolean | null
 }) {
+   
+   const [selectedCommunity,setSelectedCommunity] = useState<string>("My_community");
+   const [identifyTab , setIdentifyTab] = useState<string>("");
+   const [changeButton,setChangeButton] = useState<boolean>(false);
+
+  
+   const handleSelectedCommunity=async(value:string)=>{
+    setSelectedCommunity(value);
+   }
+
+   
 
     return (
         /* Fixed height to screen to prevent double scrollbars */
@@ -37,7 +66,9 @@ export default function CommunityDashboard({
             <div className="flex flex-1 overflow-hidden lg:grid-cols-3">
 
                 {/* leftmost for lg scrren side panel */}
-                <div className="w-lg h-full hidden lg:flex flex-col ">
+                <div className="w-lg h-full hidden
+                
+                lg:flex flex-col ">
                 <SidebarFeatures Sidebar={Sidebar} value={value} community={community} create={create}/>
                 </div>
 
@@ -53,38 +84,26 @@ export default function CommunityDashboard({
 
                         {/* Filter Buttons */}
                         <div className="flex gap-3 my-6">
-                            <button className="bg-blue-600 text-white rounded-full px-5 py-2 text-sm font-medium transition hover:bg-blue-700">All Communities</button>
-                            <button className="bg-white/5 text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition hover:bg-white/10">My communities</button>
+                            <button 
+                            onClick={()=>{
+                                setIdentifyTab("All_communities")
+                               setChangeButton(true);
+                            }}
+                            className={`${changeButton?"bg-blue-600":"bg-white/5"} text-white rounded-full px-5 py-2 text-sm font-medium transition hover:bg-blue-700 `}>All Communities</button>
+                            <button 
+                             onClick={()=>{
+                                setIdentifyTab("My_communities")
+                               setChangeButton(false);
+                            }}
+                            className={`${changeButton?"bg-white/5":"bg-blue-600"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition hover:bg-white/10`}>My communities</button>
                         </div>
           
                         {/* Community Card Grid */}
-                        <div className="grid grid-cols-1 gap-6 ">
-                            {/* Card Item */}
-
-                            <div 
-                                className="group relative w-full  h-64 rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-white/20 transition-all"
-                                onClick={() => community("comunity1")}
-                            >
-                                {/* Background Image with Overlay */}
-                                <Image src="/images/qunt.jpg" alt="bg" fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                                {/* Info Content */}
-                                <div className="absolute bottom-0 w-full p-6 flex items-end gap-4 backdrop-blur-md bg-white/10 border-t border-white/10">
-                                    <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl -translate-y-2">
-                                        <Image src="/images/user.png" alt="user" fill className="object-cover"/>
-                                    </div>
-                                    <div className="flex-1 pb-1">
-                                        <h3 className="text-white font-bold text-lg">Tech Innovators</h3>
-                                        <p className="text-slate-300 text-xs line-clamp-1">Discussing AI, web3 and emerging technologies</p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">10,000 members</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {identifyTab == "All_communities"?
+                         <AllCommunity handleSelectedCommunity={handleSelectedCommunity} community={community}/>
+                        :
+                        <MyCommunity handleSelectedCommunity={handleSelectedCommunity} community={community}/>}
+                      
                     </div>
 
                     
@@ -101,10 +120,10 @@ export default function CommunityDashboard({
             </div>
             
             {/* Community Detail View */}
-                    {open && <CommunityProfile />}
+                    {open && <CommunityProfile communityId={selectedCommunity}/>}
 
             {/* Overlays */}
-            {openCreate && <CreateCommunity closeCreate={create} />}
+            {openCreate  && <CreateCommunity closeCreate={create} />}
         </div>
     )
 }

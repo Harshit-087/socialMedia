@@ -11,6 +11,8 @@ import {Register,Signin} from "../controllers/user.controller.js"
 import videoRouter from "./video.router.js"
 import dotenv from "dotenv"
 import messageRouter from "./message.router.js"
+import storyRouter from "./story.router.js"
+import communityRouter from "./community.router.js"
 dotenv.config()
 
 const router= express.Router()
@@ -38,6 +40,9 @@ router.use("/post-api",postRouter)
 router.use("/video-api",videoRouter)
 
 router.use("/message-api",messageRouter)
+router.use("/story-api",storyRouter)
+
+router.use("/community-api",communityRouter)
 
 export default router
 

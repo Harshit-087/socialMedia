@@ -1,30 +1,67 @@
 import Image from "next/image";
 import Link from "next/link";
 
+export default function Trending() {
+  return (
+    <div className="w-full bg-[#161031] border border-white/10 rounded-2xl shadow-xl p-5 text-white">
 
-export default function Trending(){
-    return(
-         <div className="m-6 w-72 h-48 bg-white rounded-lg shadow-lg flex-col text-black">
+      {/* Header */}
+      <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+        <div className="relative w-9 h-9">
+          <Image
+            src="/images/fire.jpg"
+            alt="fire"
+            fill
+            className="object-cover"
+          />
+        </div>
 
-            <div className="flex items-center gap-2 m-4 border-b-2 border-[#C5C7C8]">
-           <div className="relative w-12 h-12 rounded-full overflow-hidden ">
-            <Image src="/images/fire.jpg" alt="fire" fill className="object-cover" />
-             </div>
-             <h1 className="font-bold text-xl">Trending</h1>
-             <Link href="#" className="ml-auto text-blue-500 text-sm font-medium">See more</Link>
-             </div>
-             
+        <h1 className="font-semibold text-lg">Trending</h1>
 
-             {/* use map to show atleast 2-3 account */}
-             <div className="flex justify-between  m-4">
-              <div className="flex-col">
-              <p className="text-gray-700">#SummerVibes</p>
-              <span className="text-gray-500 text-sm">120K posts</span>
-              </div>
-              
-              <button className="bg-blue-500 text-white px-3 py-1 rounded-2xl text-sm font-medium border-2 border-[#C5C7C8] my-auto">+ Follow</button>
-             </div>
+        <Link
+          href="#"
+          className="ml-auto text-sm text-blue-400 hover:text-blue-300"
+        >
+          See more
+        </Link>
+      </div>
 
+      {/* Trending topics */}
+      <div className="flex flex-col gap-4 mt-4">
+
+        {/* Item */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-zinc-200">
+              #SummerVibes
+            </p>
+            <span className="text-xs text-zinc-400">
+              120K posts
+            </span>
           </div>
-    )
+
+          <button className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 rounded-full font-medium transition">
+            + Follow
+          </button>
+        </div>
+
+        {/* Item example */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-zinc-200">
+              #TravelDiaries
+            </p>
+            <span className="text-xs text-zinc-400">
+              89K posts
+            </span>
+          </div>
+
+          <button className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 rounded-full font-medium transition">
+            + Follow
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
 }

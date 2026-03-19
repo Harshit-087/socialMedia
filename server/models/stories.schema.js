@@ -9,10 +9,16 @@ const storySchema = new mongoose.Schema({
     mediaUrl:{
         type:String
     },
+    secure_url:{type:String},
     mediaType:{
         type:String                     // "image" | "video"
     },
     expiresAt:{
-        type:Date
+        type:Date,
+        default:Date.now,
+        expires:"24*60*60*1000"
     }
 },{timestampe:true})
+
+const Story = mongoose.model("Story",storySchema)
+export default Story;
