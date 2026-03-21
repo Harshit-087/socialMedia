@@ -3,14 +3,14 @@ import { useState,useEffect } from "react"
 import Image from "next/image"
 import { CiMenuBurger } from "react-icons/ci";
 import { GiFlexibleStar } from "react-icons/gi";
-import CommunityProfile from "./community";
+import CommunityProfile from "./communityPanel";
 import CreateCommunity from "./createcommunity";
 import SidebarWidgets from "./trendingCommunity";
 import SidebarFeatures from "./sidebarFeature";
 
 
 import AllCommunity from "./allcommunity";
-import MyCommunity from "./mycommunity";
+
 
 
 
@@ -23,7 +23,8 @@ export type Item={
     description:string,
     category:string,
     privacy:string,
-    theme:string
+    theme:string,
+   Members_Id?:string[]
 }
 
 export default function CommunityDashboard({
@@ -37,9 +38,9 @@ export default function CommunityDashboard({
     openCreate: boolean | null
 }) {
    
-   const [selectedCommunity,setSelectedCommunity] = useState<string>("My_community");
-   const [identifyTab , setIdentifyTab] = useState<string>("");
-   const [changeButton,setChangeButton] = useState<boolean>(false);
+   const [selectedCommunity,setSelectedCommunity] = useState<string>("My_communities");
+   const [identifyTab , setIdentifyTab] = useState<string>("All_communities");
+  
 
   
    const handleSelectedCommunity=async(value:string)=>{
@@ -73,7 +74,7 @@ export default function CommunityDashboard({
                 </div>
 
                 {/* Left Side: Feed (Scrollable) */}
-                <div className="w-full md:w-[60%]  lg:w-[65%] h-full overflow-y-auto px-4 pb-10 custom-scrollbar">
+                <div className={`${open?"hidden":"h-full"} w-full md:w-[60%]  lg:w-[65%]  overflow-y-auto px-4 pb-10 custom-scrollbar`}>
                     
                     <div className={`flex-col gap-2 mt-6 ${open ? "hidden" : "flex"}`}>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3"> 
@@ -87,22 +88,31 @@ export default function CommunityDashboard({
                             <button 
                             onClick={()=>{
                                 setIdentifyTab("All_communities")
-                               setChangeButton(true);
+                               
                             }}
-                            className={`${changeButton?"bg-blue-600":"bg-white/5"} text-white rounded-full px-5 py-2 text-sm font-medium transition hover:bg-blue-700 `}>All Communities</button>
+                            className={`${identifyTab=="All_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white rounded-full px-5 py-2 text-sm font-medium transition `}>All Communities</button>
+                            
                             <button 
                              onClick={()=>{
                                 setIdentifyTab("My_communities")
-                               setChangeButton(false);
+                               
                             }}
-                            className={`${changeButton?"bg-white/5":"bg-blue-600"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition hover:bg-white/10`}>My communities</button>
+                            className={`${identifyTab=="My_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition `}>My communities</button>
+                          
+                            <button 
+                             onClick={()=>{
+                                setIdentifyTab("join_communities")
+                               
+                            }}
+                            className={`${identifyTab=="join_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition `}>joined communities</button>
+                       
                         </div>
           
                         {/* Community Card Grid */}
-                        {identifyTab == "All_communities"?
-                         <AllCommunity handleSelectedCommunity={handleSelectedCommunity} community={community}/>
+                        {identifyTab?
+                         <AllCommunity handleSelectedCommunity={handleSelectedCommunity} community={community} Tab={identifyTab}/>
                         :
-                        <MyCommunity handleSelectedCommunity={handleSelectedCommunity} community={community}/>}
+                        <p>No {identifyTab} to show</p>}
                       
                     </div>
 
@@ -115,12 +125,12 @@ export default function CommunityDashboard({
                    <SidebarWidgets />
                 </div>
                 )}
-             
+              {/* Community Detail View */}
+                    {open && <CommunityProfile communityId={selectedCommunity} />}
 
             </div>
             
-            {/* Community Detail View */}
-                    {open && <CommunityProfile communityId={selectedCommunity}/>}
+           
 
             {/* Overlays */}
             {openCreate  && <CreateCommunity closeCreate={create} />}

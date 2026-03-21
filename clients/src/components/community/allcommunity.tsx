@@ -1,26 +1,52 @@
 "use client"
+
 import {communityQuery} from "@/app/api/communityQuery"
 import {useUser} from "@/hooks/userhook"
 import {useQuery} from "@tanstack/react-query"
 import Image from "next/image"
+import {Item} from "./dashboard"
 
-export default function AllCommunity({handleSelectedCommunity,community}:{handleSelectedCommunity:(v:string)=>void, community:(v:string|null)=>void}){
+export default function AllCommunity({handleSelectedCommunity,community,Tab}:{handleSelectedCommunity:(v:string)=>void, community:(v:string|null)=>void ,Tab:string}){
+       
+    const {userId} = useUser()
 
-      
-    
-     const {data,isLoading,isError} = useQuery({
-        queryKey:["community"],
+     
+         const {data,isLoading,isError} = useQuery({
+        queryKey:["community",userId,Tab],
         queryFn:async({queryKey})=>{
+            if(Tab === "All_communities"){
             const res = await communityQuery.fetchAllCommunity()
             console.log("response all community",res.data.data);
             return res.data.data;
         }
-     })
+        else if(Tab ==="My_communities"){
+           const [ _,id] = queryKey as [string , string|undefined]
+            if(!id) return ;
+            const res = await communityQuery.fetchMyCommunity(id)
+            console.log("response",res.data.data);
+            return res.data.data;
+        }
+        else{
+             const [ _,id] = queryKey as [string , string|undefined]
+            if(!id) return ;
+            const res = await communityQuery.fetchjoinedCommunity(id)
+            console.log("response",res.data.data);
+            return res.data.data;
+        }
+        
+     }})
+    
+       
+   
+    
+  
+     
+
     return(
          <div className="grid grid-cols-1 gap-6 ">
                             {/* Card Item */}
 
-                         {data && data.map((item:any)=>(
+                         {data && data.map((item:Item)=>(
                               <div key={item._id}
                                 className="group relative w-full  h-64 rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-white/20 transition-all"
                                 onClick={() => {

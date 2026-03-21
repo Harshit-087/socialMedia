@@ -19,5 +19,8 @@ export const communityQuery ={
     },
     deleteCommunity:async(id:string)=>{
         return await axiosInstance.post("/community-api/delete_community",{id})
+    },
+    fetchjoinedCommunity:async(id:string)=>{
+        return await axiosInstance.get("/community-api/joined_community",{params:{id}})
     }
 }

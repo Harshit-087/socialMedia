@@ -5,10 +5,10 @@ const communitySchema  = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    Members_Id:{
+    Members_Id:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
-    },
+    }],
     banner_url:{
         type:String,
         required:true

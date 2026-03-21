@@ -2,19 +2,21 @@
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { FaRegBell, FaShareAlt } from "react-icons/fa";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import {useQuery,useMutation} from "@tanstack/react-query"
 import {communityQuery} from "@/app/api/communityQuery"
 import {Item} from "./dashboard"
 import { useUser } from "@/hooks/userhook";
-import { QueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Post from "./post/post";
+
 
 
 export default function CommunityProfile({communityId}:{communityId:string}) {
     const [activeTab, setActiveTab] = useState("Post");
+    const [joined , setJoined] = useState<boolean>(false)
     const {userId} = useUser();
-    const queryClient =new  QueryClient();
+    const queryClient =  useQueryClient();
    
 
     const tabs = [
@@ -37,6 +39,8 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
     }
  })
 
+  
+
   const memberMutation = useMutation({
         mutationFn:async({id,userId}:{id:string,userId:string})=>{
             if(!id || !userId) return;
@@ -45,7 +49,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
         onSuccess:(res)=>{
             console.log(res?.data?.message);
     queryClient.invalidateQueries({queryKey:["community",communityId]})
-    window.location.reload();
+    
         },
         onError:(error)=>{
             console.log(error.message);
@@ -78,7 +82,19 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
     deleteMutation.mutate(id)
      
    }
+   //see carefully
+ useEffect(() => {
+  if (data?.length) {
+    const joined = data.some((item: Item) =>
+      item.Members_Id?.some(
+        (value: string) => String(value) === String(userId)
+      )
+    );
 
+    setJoined(joined);
+  }
+}, [data, userId]);
+  
     return (
         <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -91,7 +107,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
             {/* Header Card */}
             {data && data.map((item:Item)=>(
 <div key={item._id} className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem]  overflow-hidden shadow-2xl border border-white/10">
-                
+              
                 {/* Banner Image */}
                 <div className="relative w-full h-full">
                     <Image 
@@ -126,8 +142,9 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
                            {item.AdminId != userId? 
                            <button 
                            onClick={()=>handleJoinCommunity(item._id)}
-                           className="flex-1 md:flex-none md:w-48 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
-                                Join Community
+                           disabled={joined}
+                           className={`flex-1 md:flex-none md:w-48 py-2.5 ${joined? "bg-white/10": "bg-blue-600 hover:bg-blue-500"}  text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95`}>
+                              {joined? "Joined": "Join Community"}  
                             </button>
                            :
                            <button 
@@ -170,16 +187,20 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
                 ))}
             </div>
 
-            {/* Content Placeholder */}
-            <div className=" h-screen grid grid-col-3  overflow-y-scroll text-slate-500 text-center italic   bg-white">
-                <div className="w-full">
-                    {activeTab=="Post" ?
-                    <Post/>
-                    :<p>Showing {activeTab} content...</p>}
-                </div>
-                {/* <div className=""></div> */}
-                
-            </div>
+           
+         {/* Content Placeholder */}
+
+<div className="h-screen overflow-y-auto bg-white text-slate-500 text-center italic py-8">
+  <div className="max-w-4xl mx-auto px-4">
+    {activeTab === "Post" ? (
+      <div className="text-left not-italic">
+        <Post />
+      </div>
+    ) : (
+      <p className="py-20">Showing {activeTab} content...</p>
+    )}
+  </div>
+</div>
         </motion.div>
     )
 }
