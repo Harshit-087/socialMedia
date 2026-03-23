@@ -16,7 +16,7 @@ export  default function SidebarFeatures({
 }){
     return(
         <>
-        <div className="px-4 mb-6">
+        <div className="px-4 mb-6 ">
                             <input 
                                 type="text"
                                 placeholder="Search..." 
@@ -25,7 +25,7 @@ export  default function SidebarFeatures({
                         </div>
 
                         {/* Navigation */}
-                        <div className="flex flex-col px-3 gap-2">
+                        <div className="flex flex-col px-3 gap-2 ">
                             <div 
                                 onClick={() => { community(null); Sidebar(); }}
                                 className="w-full h-12 bg-blue-600 rounded-xl flex items-center px-4 cursor-pointer hover:bg-blue-500 text-white gap-3 transition-all"
@@ -33,16 +33,16 @@ export  default function SidebarFeatures({
                                 <GoHomeFill size={24}/>
                                 <p className="font-semibold">Home</p>
                             </div>
-                            <div className="w-full h-12 bg-white/5 hover:bg-white/10 rounded-xl flex items-center px-4 cursor-pointer text-white gap-3 transition-all">
+                            <div className="w-full h-12 bg-white/5 hover:bg-white/10 rounded-xl flex items-center  px-4 cursor-pointer text-white gap-3 transition-all">
                                 <FaGlobeAmericas size={22}/>
                                 <p className="font-semibold">Discover</p>
                             </div>
                         </div>
 
-                        <p className="px-6 mt-8 mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">My communities</p>
+                        <p className="px-6 mt-8 mb-4 text-xs font-bold uppercase tracking-widest text-slate-500 cursor-pointer">My communities</p>
 
                         <div className="flex flex-col px-3 gap-2 overflow-y-auto">
-                            <div className="w-full p-4 rounded-xl bg-white/5 flex items-center gap-4 hover:bg-white/10 cursor-pointer transition-all border border-white/5 group">
+                            <div className="w-full p-4 rounded-xl bg-white/5 flex items-center  gap-4 hover:bg-white/10 cursor-pointer transition-all border border-white/5 group">
                                 <div className="p-2 bg-blue-500 rounded-lg group-hover:scale-110 transition-transform">
                                     <IoMdRocket size={24} className="text-white"/>
                                 </div>
@@ -64,7 +64,7 @@ export  default function SidebarFeatures({
 
                             <button 
                                 onClick={() => { create(true); Sidebar(); }}
-                                className="w-full mt-4 p-4 rounded-xl border-2 border-dashed border-white/10 flex justify-center items-center gap-2 text-slate-400 hover:text-white hover:border-white/30 transition-all"
+                                className="w-full mt-4 p-4 rounded-xl border-2 border-dashed cursor-pointer border-white/10 flex justify-center items-center gap-2 text-slate-400 hover:text-white hover:border-white/30 transition-all"
                             >
                                 <IoAddCircleOutline size={24}/>
                                 <p className="font-medium">Create Community</p>

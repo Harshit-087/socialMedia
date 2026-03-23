@@ -36,8 +36,8 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
   },[progress])
 
     const uploadMutation = useMutation({
-        mutationFn:async({data,userId,token}:{data:FormData,userId:string,token:string})=>{
-            return await postQuery.uploadPost(data,userId,token)
+        mutationFn:async(data:FormData)=>{
+            return await postQuery.uploadPost(data)
         },
         onSuccess:(res)=>{
              toast.success(res.data.msg)
@@ -69,9 +69,10 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
          const compressedFile = await imagecompression(file,{maxSizeMB:1})
          formData.append("pictures", compressedFile);
          formData.append("caption",caption.value)
-        
+         formData.append("id",userId)
+         formData.append("token",token)
           // dispatch(uploadImage(file.name))
-          uploadMutation.mutate({ data: formData, userId, token })    
+          uploadMutation.mutate( formData)    
     }
 
    const handleSubmitVideo=async(e:React.FormEvent)=>{

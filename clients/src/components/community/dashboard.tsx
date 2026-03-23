@@ -54,7 +54,7 @@ export default function CommunityDashboard({
         <div className="w-full h-screen flex flex-col bg-[#0a052e] overflow-hidden">
             
             {/* Navbar */}
-            <div className="flex w-full h-16 shrink-0 items-center px-4 border-b border-white/10">
+            <div className="flex w-full h-16 shrink-0 items-center px-4 lg:hidden border-b border-white/10">
                 <CiMenuBurger 
                     size={24} 
                     className="cursor-pointer text-white lg:hidden" 
@@ -64,12 +64,11 @@ export default function CommunityDashboard({
             </div>
 
             {/* Main Content Area */}
-            <div className="flex flex-1 overflow-hidden lg:grid-cols-3">
+            <div className="flex flex-1 overflow-hidden  lg:grid-cols-3">
 
                 {/* leftmost for lg scrren side panel */}
-                <div className="w-lg h-full hidden
-                
-                lg:flex flex-col ">
+                <div className="w-lg h-full hidden lg:flex flex-col ">
+                    <div className="w-full my-8 pb-4 pl-5 text-white text-2xl font-serif border-b-2  border-gray-800">culthub</div>
                 <SidebarFeatures Sidebar={Sidebar} value={value} community={community} create={create}/>
                 </div>
 
@@ -90,21 +89,21 @@ export default function CommunityDashboard({
                                 setIdentifyTab("All_communities")
                                
                             }}
-                            className={`${identifyTab=="All_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white rounded-full px-5 py-2 text-sm font-medium transition `}>All Communities</button>
+                            className={`${identifyTab=="All_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white rounded-full px-5 py-2 text-sm font-medium transition cursor-pointer `}>All Communities</button>
                             
                             <button 
                              onClick={()=>{
                                 setIdentifyTab("My_communities")
                                
                             }}
-                            className={`${identifyTab=="My_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition `}>My communities</button>
+                            className={`${identifyTab=="My_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition cursor-pointer`}>My communities</button>
                           
                             <button 
                              onClick={()=>{
                                 setIdentifyTab("join_communities")
                                
                             }}
-                            className={`${identifyTab=="join_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition `}>joined communities</button>
+                            className={`${identifyTab=="join_communities"?"bg-blue-600 hover:bg-blue-700":"bg-white/5 hover:bg-white/10"} text-white border border-white/10 rounded-full px-5 py-2 text-sm font-medium transition cursor-pointer`}>joined communities</button>
                        
                         </div>
           

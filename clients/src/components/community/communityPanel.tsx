@@ -28,6 +28,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
         { name: "About" },
     ];
 
+    // fetching community
  const {data,isLoading,isError} = useQuery({
     queryKey:["community",communityId],
     queryFn:async({queryKey})=>{
@@ -102,7 +103,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
             exit={{ y: 20, opacity: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
             /* Changed to relative so it fits inside your dashboard column flow */
-            className="w-full min-h-full bg-transparent pt-4 z-30"
+            className="w-full min-h-full bg-transparent overflow-y-auto pt-4 z-30"
         >
             {/* Header Card */}
             {data && data.map((item:Item)=>(
@@ -167,7 +168,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
             
 
             {/* Navigation Tabs */}
-            <div className="mt-6 border-b border-white/10 flex md:flex-wrap overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="mt-6 border-b border-white/10 flex md:flex-wrap overflow-x-auto  no-scrollbar scroll-smooth">
                 {tabs.map((item) => (
                     <button
                         key={item.name}
@@ -190,11 +191,11 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
            
          {/* Content Placeholder */}
 
-<div className="h-screen overflow-y-auto bg-white text-slate-500 text-center italic py-8">
-  <div className="max-w-4xl mx-auto px-4">
+<div className=" text-slate-500 text-center italic py-8">
+  <div className="max-w-4xl mx-auto px-4  ">
     {activeTab === "Post" ? (
-      <div className="text-left not-italic">
-        <Post />
+      <div className="text-left not-italic ">
+        <Post communityId={communityId}/>
       </div>
     ) : (
       <p className="py-20">Showing {activeTab} content...</p>

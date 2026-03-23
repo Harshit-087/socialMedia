@@ -1,6 +1,8 @@
+import CommunityPost from "../models/communityPost.schema.js";
 import Post from "../models/post.schema.js"
 import User from "../models/user.schema.js" 
 
+// data from cloudinary to store
 export const createPost = async(req,res)=>{
     try{
     const {userId,publicId,url,caption} = req.body;
@@ -24,6 +26,9 @@ export const createPost = async(req,res)=>{
     return res.status(500).json({msg:"failed in post creation"})
 }
 }
+
+
+
 
 export const showPosts = async(req,res)=>{
     try{
@@ -61,4 +66,56 @@ export const deletePost=async(req,res)=>{
   }catch(err){
     return res.status(500).json({msg:"server error in deleting post"})
   }
+}
+
+// community post
+export const CreateCommunityPost=async(req,res)=>{
+    const { userId,caption,communityId} = req.body;
+   
+
+    try{
+        const communityPost = await CommunityPost.create({
+            userId,
+            caption,communityId
+        })
+        const populatedPost = await communityPost.populate("userId","username profileImage _id").sort({createdAt:-1})
+
+        // set and get() are global variable which are bad to trigger for sending msg around the app
+        req.app.get("socket.io").to(communityId).emit("new_community_post",populatedPost)
+        return res.status(200).json({message:"community post created",data:communityPost})
+    }catch(error){
+        console.log("error in creating a community post",err)
+        return res.status(500).json({message:"internal server error",error:error.message})
+    }
+}
+
+// community Post via cloudinary
+export const communityPost = async(req,res)=>{
+    const {userId,communityId,publicId,url,caption} =req.body;
+    try{
+        const communityPost = await CommunityPost.create({
+            userId,
+            communityId,
+            caption,
+            publicId,
+            url
+        })
+        const populatedPost = await communityPost.populate("userId","username profileImage _id").sort({createdAt:-1})
+        req.app.get("socket.io").to(communityId).emit("new_community_post",populatedPost)
+        return res.status(200).json({message:"successfull community post via cloudinary",data:communityPost})
+    }catch(error){
+         console.log("error in creating a community post",error)
+        return res.status(500).json({message:"internal server error",error:error.message})
+    }
+}
+
+export const  fetchCommunityPost = async(req,res)=>{
+    const {communityId } = req.query
+    try{
+        const communityPost = await CommunityPost.find({communityId:communityId}).populate("userId","username profileImage _id").sort({createdAt:-1})
+        return res.status(200).json({message:"successfully fetch community post",data:communityPost})
+    }catch(error){
+        console.log("error in fetching community post",error)
+        return res.status(500).json({message:"internal server error",error:error.message})
+    }
 }

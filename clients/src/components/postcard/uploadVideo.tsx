@@ -1,7 +1,7 @@
 import axios from "axios"
 
 export async function UploadVideo(formdata:FormData){
-    const video = await formdata.get("files") as File;
+    const video =  formdata.get("files") as File;
     const caption = formdata.get("caption") as string;
     const userId = formdata.get("userId") as string;
 

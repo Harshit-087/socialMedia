@@ -17,15 +17,24 @@ export interface CloudinaryUploadResponse {
 
 export async function POST(request: NextRequest){
   const formdata = await request.formData();
+
      const file = formdata.get("pictures") ;
+
+    const image = formdata.get("communityPost");
+  
      const userId = formdata.get("userId") ;
      const token = formdata.get("token") ;
      const caption = formdata.get("caption");
+     const communityId =formdata.get("communityId");
      
-      if(!file || !(file instanceof File)){
+     const selectedFile =
+  file instanceof File ? file :
+  image instanceof File ? image :
+  null
+      
+      if(!selectedFile){
         return NextResponse.json({error:"file not provided"},{status:400})
       }
-      
 
     if(!userId){
       return NextResponse.json({error:"authorization error"},{status:401})
@@ -35,16 +44,17 @@ export async function POST(request: NextRequest){
      // for uploading file to cloudinary 
      // 1. convert to arraybuffer
      // 2. convert arraybuffer to buffer 
-
-     const bytes = await file.arrayBuffer();
+    
+     const bytes = await selectedFile.arrayBuffer();
      const buffer = Buffer.from(bytes);
-
-     if((file.size)>10*1024*1024){
+     if((selectedFile.size)>10*1024*1024){
       return NextResponse.json({error:"file is too large"},{status:400})
+     
      }
+     
 
 
-     console.log("file size",file.size)
+     console.log("file size",selectedFile.size)
   
     
 
@@ -54,7 +64,7 @@ export async function POST(request: NextRequest){
         (resolve,reject)=>{
           
       const uploadImage =  cloudinary.uploader.upload_stream(
-            {folder:"socialmedia_posts"},
+            {folder:selectedFile === file?"socialmedia_posts":"social_communityPost"},
             (error,result)=>{
               if(error){
                 reject(error)
@@ -78,10 +88,12 @@ export async function POST(request: NextRequest){
   userId,
   publicId: result.public_id,
 });
-
+ 
+// route condition
+ const url = selectedFile===file?
       // backend route
       //use {} for body and headers
-  const backendResponse =   await axios.post(
+    await axios.post(
       `${process.env.BACKEND_URL}/post-api/uploadPost`,
       {
         userId,
@@ -97,8 +109,26 @@ export async function POST(request: NextRequest){
          timeout:10000,
       }
     )
+    : // going to backend communtiyPost
+    await axios.post(
+      `${process.env.BACKEND_URL}/post-api/communityPost`,
+      {
+        userId,
+        communityId,
+        publicId: result.public_id,
+        url: result.secure_url,
+        caption:caption
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+         timeout:10000,
+      }
+    )
  
-console.log("Backend response:", backendResponse.data);
+console.log("Backend response:", url.data);
 
 
 
