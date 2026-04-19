@@ -1,10 +1,12 @@
 
 import Follow from "../models/follow.schema.js"
 import mongoose from "mongoose"
+import {redis} from "../config/connection.js"
+import {setCache,getCache} from "../services/redis/cache.js"
 
 export const followAccount = async(req,res)=>{
      const {userid,accountId} =req.body;
-  
+   
      try{
         // user following
   
@@ -12,13 +14,15 @@ export const followAccount = async(req,res)=>{
          followingId:new mongoose.Types.ObjectId(accountId), 
         followerId:new mongoose.Types.ObjectId(userid) 
      })      
-     if(isFollowed) return ;
+   if(isFollowed) return res.status(400).json({ msg: "Already followed" });
        
     const followAccount = await Follow.create({
         followingId:new mongoose.Types.ObjectId(accountId), 
         followerId:new mongoose.Types.ObjectId(userid)    
     })
-    
+     // invalidate cache
+    await redis.del(`following:${userid}`);
+    await redis.del(`followers:${accountId}`);
 
     return res.status(201).json({msg:"followed",data:followAccount})
    }catch(err){
@@ -29,7 +33,10 @@ export const followAccount = async(req,res)=>{
 
 export const  followingAccount = async(req,res)=>{
     const {id ,userid} =req.query;
-
+    //fetching following account from cachhe
+    const key = `following:${id}`;
+    const cachedData = await getCache(key);
+    if(cachedData) return res.status(200).json({msg:"success from cache following",data:cachedData})
     try{
         const following = await Follow.aggregate([
             {$match:{followerId :new mongoose.Types.ObjectId(id)}},   // i am following account 
@@ -55,7 +62,8 @@ export const  followingAccount = async(req,res)=>{
              followerId:userid,
              followingId:id
         })
-
+            //set in cache
+            await setCache(key,{following,followers,isFollowing:!!isFollowing},600)
         return res.status(200).json({msg:"fetching all following",data:{following,followers,isFollowing:!!isFollowing}})
     }catch(err){
         console.log("error in fetching follwing",err)
@@ -66,6 +74,11 @@ export const  followingAccount = async(req,res)=>{
 
 export const followers = async(req,res)=>{
     const {userid} = req.query;
+
+    //fetching followers from cache
+    const key = `followers:${userid}`;
+    const cachedData = await getCache(key);
+    if(cachedData) return res.status(200).json({msg:"success from cache followers",data:cachedData})
 
     try{
 
@@ -78,6 +91,8 @@ export const followers = async(req,res)=>{
                 }
             }
         ])
+        //set in cache
+        await setCache(key,getFollower,600)
 
         return res.status(200).json({msg:"fetched followers ",data:getFollower})
     }catch(error){
@@ -88,9 +103,18 @@ export const followers = async(req,res)=>{
 
 export const followersAccounts = async(req,res)=>{
     const {id} = req.query;
+   
+    //fetching followers account from cache
+    const key = `followers:${id}`;
+    const cachedData = await getCache(key);
+    if(cachedData) return res.status(200).json({msg:"success from cache followers accounts",data:cachedData})
+
     try{
         const followerAccounts = await Follow.find({followingId:id}).populate("followerId","profileImage username _id")
-        // console.log("followerAccount leeeeellee",followerAccounts)
+       
+        //set in cache
+        await setCache(key,followerAccounts,600)
+
         return res.status(200).json({msg:"fetched follower accounts",data:followerAccounts})
     }catch(error){
         console.log("error in fetching follower accounts",error)
@@ -100,10 +124,18 @@ export const followersAccounts = async(req,res)=>{
 
 export const followedAccounts = async(req,res)=>{
     const {id} = req.query;
+   // fetch from cache
+   const key = `following:${id}`;
+   const cachedData = await getCache(key);
+   if(cachedData) return res.status(200).json({msg:"success from cache following accounts",data:cachedData})
+
     try{
       
         const followedAccounts = await Follow.find({followerId:id}).populate("followingId","profileImage username _id")
-    //   console.log("followedAccount leeeeellee",followedAccounts)
+   
+         // set in cache
+         await setCache(key,followedAccounts,600)
+
         return res.status(200).json({msg:"fetched followed accounts",data:followedAccounts})
     }catch(error){
         console.log("error in fetching followed accounts",error)

@@ -4,7 +4,7 @@ import cors from "cors";
 
 import {Server} from "socket.io"
 import router from "./router/router.js";
-import  connectionDb  from "./db/connection.js";
+import  {connectionDb}  from "./config/connection.js";
 import dotenv from 'dotenv'
 import Message from "./models/message.schema.js";
 import mongoose from "mongoose";
@@ -18,7 +18,7 @@ const allowedOrigins = [
   process.env.ORIGIN1,
  process.env.ORIGIN2// your machine's IP for mobile testing
  
-];
+].filter(Boolean);
 
 export  const io = new Server(server,{
   cors:{
