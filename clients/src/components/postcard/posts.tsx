@@ -17,7 +17,7 @@ export default function Posts({userid}:{userid:string}) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [post, setPost] = useState(false);
-  const {userId} = useUser()
+  const {userId,token} = useUser()
 
   const  searchParams = useSearchParams()
   const id = searchParams.get("id");
@@ -41,16 +41,17 @@ export default function Posts({userid}:{userid:string}) {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["posts", userid],
+    queryKey: ["posts", userid,token],
     queryFn: async ({ queryKey }) => {
-      const [, userIdFromKey] = queryKey;
+      const [, userIdFromKey,token] = queryKey;
       if (!userIdFromKey) return [];
-      const res = await postQuery.showPosts(userIdFromKey);
+      const res = await postQuery.showPosts(userIdFromKey,token);
 
        toast.success(res.data.msg)
+       console.log("posts",res.data)
       return res.data?.data;
     },
-    refetchOnWindowFocus:false,
+    refetchOnWindowFocus:false, 
     refetchOnReconnect:false,
     refetchOnMount:false,
     enabled: !!userid,

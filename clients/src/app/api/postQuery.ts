@@ -6,25 +6,41 @@ export const postQuery= {
      return await axiosInstance.get("/post-api/allposts",
         {
             headers:{
-                Authorization:`Bearer ${token}`
+                "content-type":"application/json",
+                 "Authorization":`Bearer ${token}`
             }
         }
      )
     },
-     showPosts:async(userId:string)=>{
+     showPosts:async(userId:string,token:string)=>{
 
         // get request with params
-     return await axiosInstance.get("/post-api/posts",{params:{userId}})
+     return await axiosInstance.get("/post-api/posts",{params:{userId},
+     headers:{
+        "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           }})
     },
     uploadPost:async(data:FormData)=>{
         // the formdata should not wrapp inside {} , so we append the userId and token to formdata
-        
-        return await axios.post("/api/image_upload", data )
+        const token = data.get("token")
+        return await axios.post("/api/image_upload", data,{
+             headers:{
+                "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           }
+        } )
     },
     deletePost:async(publicId:string,token:string)=>{
         // send image as query param to match axios.delete signature
-        return await axios.delete("/api/image_upload", { params: { publicId ,token } })
+        return await axios.delete("/api/image_upload", { params: { publicId ,token },
+         headers:{
+            "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           } })
     },
+
+
     createCommunityPost:async(data:FormData)=>{
        const token =   data.get("token")
        const userId = data.get("userId")
@@ -34,12 +50,16 @@ export const postQuery= {
             userId,caption,communityId
         },{
             headers:{
-               
-                Authorization:`Bearer ${token}`
+               "content-type":"application/json",
+                 "Authorization":`Bearer ${token}`
             }
         })
     },
-    fetchCommunityPost:async(communityId:string)=>{
-        return await axiosInstance.get("/post-api/communityPost",{params:{communityId}})
+    fetchCommunityPost:async(communityId:string,token:string)=>{
+        return await axiosInstance.get("/post-api/communityPost",{params:{communityId},
+         headers:{
+            "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           }})
     }
 }

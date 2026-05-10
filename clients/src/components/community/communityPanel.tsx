@@ -8,14 +8,16 @@ import {communityQuery} from "@/app/api/communityQuery"
 import {Item} from "./dashboard"
 import { useUser } from "@/hooks/userhook";
 import { useQueryClient } from "@tanstack/react-query";
-import Post from "./post/post";
+import PostSection from "./activeTab/post";
+import { ApiError } from "next/dist/server/api-utils";
+import MembersList from "./activeTab/members";
 
 
 
 export default function CommunityProfile({communityId}:{communityId:string}) {
     const [activeTab, setActiveTab] = useState("Post");
     const [joined , setJoined] = useState<boolean>(false)
-    const {userId} = useUser();
+    const {userId,token} = useUser();
     const queryClient =  useQueryClient();
    
 
@@ -30,12 +32,12 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
 
     // fetching community
  const {data,isLoading,isError} = useQuery({
-    queryKey:["community",communityId],
+    queryKey:["community",communityId,token],
     queryFn:async({queryKey})=>{
-        const [ _,communityId] = queryKey as [string , string|undefined]
+        const [ _,communityId,token] = queryKey as [string , string|undefined,string]
         if(!communityId) return ;
-        const res = await communityQuery.openCommunity(communityId)
-        console.log("response",res.data.data);
+        const res = await communityQuery.openCommunity(communityId,token)
+        console.log("response joo banaya tha ",res.data.data);
         return res.data.data;
     }
  })
@@ -43,13 +45,13 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
   
 
   const memberMutation = useMutation({
-        mutationFn:async({id,userId}:{id:string,userId:string})=>{
-            if(!id || !userId) return;
-            return await communityQuery.joinCommunity(id,userId)
+        mutationFn:async({id,userId,token}:{id:string,userId:string,token:string})=>{
+            if(!id || !userId || !token) return;
+            return await communityQuery.joinCommunity(id,userId,token)
         },
         onSuccess:(res)=>{
             console.log(res?.data?.message);
-    queryClient.invalidateQueries({queryKey:["community",communityId]})
+    queryClient.invalidateQueries({queryKey:["community",communityId,token]})
     
         },
         onError:(error)=>{
@@ -59,13 +61,13 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
 
 
       const deleteMutation = useMutation({
-        mutationFn:async(id:string)=>{
-            if(!id ) return;
-            return await communityQuery.deleteCommunity(id)
+        mutationFn:async({id,token}:{id:string,token:string})=>{
+            if(!id || !token ) return;
+            return await communityQuery.deleteCommunity(id,token)
         },
         onSuccess:(res)=>{
             console.log(res?.data?.message);
-          queryClient.invalidateQueries({queryKey:["community",communityId]})
+          queryClient.invalidateQueries({queryKey:["community",communityId,token]})
           window.location.reload()
         },
         onError:(error)=>{
@@ -75,12 +77,12 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
 
    const handleJoinCommunity=async(id:string)=>{
     
-    memberMutation.mutate({id,userId});
+    memberMutation.mutate({id,userId,token});
    }
     
    const handleDeleteCommunity=async(id:string)=>{
     
-    deleteMutation.mutate(id)
+    deleteMutation.mutate({id,token})
      
    }
    //see carefully
@@ -106,13 +108,13 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
             className="w-full min-h-full bg-transparent overflow-y-auto pt-4 z-30"
         >
             {/* Header Card */}
-            {data && data.map((item:Item)=>(
-<div key={item._id} className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem]  overflow-hidden shadow-2xl border border-white/10">
+            {data? 
+<div key={data?.[0]._id} className="w-[90%] mx-auto h-64 md:h-72 relative rounded-[2.5rem]  overflow-hidden shadow-2xl border border-white/10">
               
                 {/* Banner Image */}
                 <div className="relative w-full h-full">
                     <Image 
-                        src={item.banner_url} 
+                        src={data?.[0].banner_url} 
                         alt="/images/qunt.jpg"
                         fill 
                         className="object-cover"
@@ -129,27 +131,27 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
                         {/* Top Row: Title & Avatar */}
                         <div className="flex items-center gap-4">
                             <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30 shrink-0">
-                                <Image src={item.icon_url} alt="/images/user.png" fill className="object-cover" />
+                                <Image src={data?.[0].icon_url} alt="/images/user.png" fill className="object-cover" />
                             </div>
                             <div className="text-white">
-                                <h2 className="text-xl md:text-2xl font-bold leading-tight">{item.communityName} </h2>
+                                <h2 className="text-xl md:text-2xl font-bold leading-tight">{data?.[0].communityName} </h2>
                                 <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">120,000 members</p>
-                                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">{item.privacy}</p>
+                                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">{data?.[0].privacy}</p>
                             </div>
                         </div>
 
                         {/* Bottom Row: Actions */}
                         <div className="flex items-center gap-3">
-                           {item.AdminId != userId? 
+                           {data?.[0].AdminId != userId? 
                            <button 
-                           onClick={()=>handleJoinCommunity(item._id)}
+                           onClick={()=>handleJoinCommunity(data._id)}
                            disabled={joined}
                            className={`flex-1 md:flex-none md:w-48 py-2.5 ${joined? "bg-white/10": "bg-blue-600 hover:bg-blue-500"}  text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95`}>
                               {joined? "Joined": "Join Community"}  
                             </button>
                            :
                            <button 
-                           onClick={()=>handleDeleteCommunity(item._id)}
+                           onClick={()=>handleDeleteCommunity(data._id)}
                            className="flex-1 md:flex-none md:w-48 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
                                 Delete Community
                             </button>} 
@@ -164,7 +166,7 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
                     </div>
                 </div>
             </div>
-            ))}
+            :null}
             
 
             {/* Navigation Tabs */}
@@ -195,11 +197,13 @@ export default function CommunityProfile({communityId}:{communityId:string}) {
   <div className="max-w-4xl mx-auto px-4  ">
     {activeTab === "Post" ? (
       <div className="text-left not-italic ">
-        <Post communityId={communityId}/>
+        <PostSection communityId={communityId}/>
       </div>
-    ) : (
+    ) : activeTab==="Media" ?(
       <p className="py-20">Showing {activeTab} content...</p>
-    )}
+    ): activeTab==="Members" ?(  
+    <MembersList members={data?.[0].members}/>
+    ):(<p className="py-20">Showing {activeTab} content...</p>)}
   </div>
 </div>
         </motion.div>

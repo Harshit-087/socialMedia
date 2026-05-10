@@ -61,6 +61,7 @@ export interface ApiError {
 export interface FollowVariables {
   userId: string;
   accountId: string;
+  token:string
 }
 
 
@@ -71,7 +72,7 @@ export default function Navbar() {
   const [open, setOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
    const [pop,setPop] = useState<boolean>(false)
-  const { username, userId, profileImage } = useUser();
+  const { username,token, userId, profileImage } = useUser();
   const dispatch = useDispatch();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,22 +81,22 @@ export default function Navbar() {
   const router = useRouter()
 
   const { data: searchedUsers } = useQuery({
-    queryKey: ["searchUser", searchUser],
+    queryKey: ["searchUser", searchUser,token],
     queryFn: async ({ queryKey }) => {
-      const [, searchuser] = queryKey as [string, string | undefined];
-      if (!searchuser) return null;
-      const res = await userQuery.searchUser(searchuser);
+      const [, searchuser,token] = queryKey as [string, string | undefined,string];
+      if (!searchuser || !token) return null;
+      const res = await userQuery.searchUser(searchuser,token);
       return res.data.data;
     },
     enabled: searchUser.length > 0,
   });
 
     const{data,isLoading:followLoading,error:followError}=useQuery({
-      queryKey:["follow",searchedUsers?.[0]?._id,userId],
+      queryKey:["follow",searchedUsers?.[0]?._id,userId,token],
       queryFn:async({queryKey})=>{
-         const [,id,userId]=queryKey as [string, string|undefined ,string|undefined];
-         if(!id || !userId) return ;
-         const res= await followQuery.following(id,userId)
+         const [,id,userId,token]=queryKey as [string, string|undefined ,string|undefined,string];
+         if(!id || !userId || !token) return ;
+         const res= await followQuery.following(id,userId,token)
         //  toast.success(res.data.msg)
          return res.data.data;
       },
@@ -108,15 +109,15 @@ export default function Navbar() {
   const handleAccount = () => setLoading(!loading);
 
   const followMutation = useMutation<AxiosResponse<FollowResponse>, ApiError, FollowVariables>({
-    mutationFn: async ({ userId, accountId }: FollowVariables) => {
+    mutationFn: async ({ userId, accountId ,token}: FollowVariables) => {
       if (userId === accountId) {
         throw new Error("Cannot follow yourself");
       }
-      return await followQuery.follow(userId, accountId);
+      return await followQuery.follow(userId, accountId,token);
     },
     onSuccess: (res: AxiosResponse<FollowResponse>) => {
       toast.success(res.data?.msg);
-      queryclient.invalidateQueries({queryKey:["follow",userId]})
+      queryclient.invalidateQueries({queryKey:["follow",userId,token]})
      
     },
     onError: (err: ApiError) => {
@@ -235,6 +236,7 @@ useEffect (()=>{
                   followMutation.mutate({ 
                     userId,
                     accountId: user._id,
+                    token
                   });
                 }}
                 className="mt-2 w-24 bg-blue-600 text-white py-1.5 text-sm rounded-full shadow-md hover:bg-blue-500 active:scale-95 transition-all duration-200"

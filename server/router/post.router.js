@@ -1,20 +1,20 @@
 import express from "express"
 import {createPost,allPost,showPosts,deletePost,CreateCommunityPost,communityPost,fetchCommunityPost} from "../controllers/post.controller.js"
-import {AuthMiddleware} from "../middleware/verifyjwt.js"
+
 import cors from "cors"
 
 const postRouter =express.Router();
 postRouter.use(cors())
 
-postRouter.post("/uploadPost",AuthMiddleware,createPost)
+postRouter.post("/uploadPost",createPost)
 
-postRouter.post("/create_post",AuthMiddleware,CreateCommunityPost)
+postRouter.post("/create_post",CreateCommunityPost)
 
-postRouter.post("/communityPost",AuthMiddleware,communityPost)
+postRouter.post("/communityPost",communityPost)
 postRouter.get("/communityPost",fetchCommunityPost)
 
 
-postRouter.get("/allposts",AuthMiddleware,allPost)
+postRouter.get("/allposts",allPost)
 
 postRouter.get("/posts",showPosts)
 

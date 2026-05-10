@@ -66,8 +66,8 @@ export default function PostCard() {
       return await likeQuery.likePost(userId, Url, token);
     },
     onSuccess: (res: AxiosResponse<LikeResponse>) => {
-      queryClient.invalidateQueries({ queryKey: ["myLikes", userId] })
-      queryClient.invalidateQueries({ queryKey: ["getLikes"] })
+      queryClient.invalidateQueries({ queryKey: ["myLikes", userId,token] })
+      queryClient.invalidateQueries({ queryKey: ["getLikes",token] })
     },
     onError: (err: ApiError) => { console.log("error in liking post", err) }
   });
@@ -78,17 +78,17 @@ export default function PostCard() {
       return await likeQuery.deleteLike(userId, Url, token);
     },
     onSuccess: (res: AxiosResponse<DeleteLikeResponse>) => {
-      queryClient.invalidateQueries({ queryKey: ["myLikes", userId] })
-      queryClient.invalidateQueries({ queryKey: ["getLikes"] })
+      queryClient.invalidateQueries({ queryKey: ["myLikes", userId,token] })
+      queryClient.invalidateQueries({ queryKey: ["getLikes",token] })
     },
     onError: (err: ApiError) => { console.log("error in liking deletion post", err) }
   })
 
   // fetching all likes .. counting // 
   const { data: countLikes } = useQuery({
-    queryKey: ["getLikes"],
+    queryKey: ["getLikes",token],
     queryFn: async () => {
-      const res = await likeQuery.fetchingLikes();
+      const res = await likeQuery.fetchingLikes(token);
       return res.data?.count;
     }
   })
@@ -102,10 +102,10 @@ export default function PostCard() {
 
   // fetching my specific liked image ..//
   const { data: myLikes } = useQuery({
-    queryKey: ["myLikes", userId],
+    queryKey: ["myLikes", userId,token],
     queryFn: async ({ queryKey }) => {
-      const [_, userid] = queryKey
-      const res = await likeQuery.fetchMyLikes(userid);
+      const [_, userid,token] = queryKey
+      const res = await likeQuery.fetchMyLikes(userid,token);
       return res.data?.data;
     }
   })

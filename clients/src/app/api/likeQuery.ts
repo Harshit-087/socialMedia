@@ -9,7 +9,8 @@ export const likeQuery={
             Url},              // for body wrap in object.
             {
                 headers:{
-                    Authorization:`Bearer ${token}`
+                    "content-type":"application/json",
+                     "Authorization":`Bearer ${token}`
                 }
             }
         ) 
@@ -21,15 +22,25 @@ export const likeQuery={
                 url
             },
            { headers:{
-              Authorization:`Bearer ${token}`
+            "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
            }}
         )
     },
-    fetchingLikes:async()=>{
-        return await axiosInstance.get("/like-api/getLikes")
+    fetchingLikes:async(token:string)=>{
+        return await axiosInstance.get("/like-api/getLikes",{
+             headers:{
+                "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           }
+        })
     },
-    fetchMyLikes:async(userId:string)=>{
-      return await axiosInstance.get("/like-api/myLikes",{params:{userId}})
+    fetchMyLikes:async(userId:string,token:string)=>{
+      return await axiosInstance.get("/like-api/myLikes",{params:{userId},
+     headers:{
+        "content-type":"application/json",
+               "Authorization":`Bearer ${token}`
+           }})
     },
 }
 

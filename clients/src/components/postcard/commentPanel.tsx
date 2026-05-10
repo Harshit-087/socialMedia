@@ -24,7 +24,8 @@ interface props{
 type CommentVariables={
     value:string,
     userId:string,
-    data:string
+    data:string,
+    token:string
 }
 
 type CommentResponse={
@@ -45,15 +46,15 @@ type CommentResponse={
 export default function CommentPanel({close,data}:props){
 
 
-    const {userId} = useUser();
+    const {userId,token} = useUser();
     const queryClient = useQueryClient();
 
     //fetching all comments on post 
     const {data:comments,isLoading,error} = useQuery({
-        queryKey:["comments",data?.media[0]?.url],
+        queryKey:["comments",data?.media[0]?.url,token],
         queryFn:async({queryKey})=>{
-            const [_,postUrl] = queryKey;
-            const res = await commentQuery.fetchingComment(postUrl);
+            const [_,postUrl,token] = queryKey;
+            const res = await commentQuery.fetchingComment(postUrl,token);
              toast.success(res.data.msg)
             return res.data.data;
         }
@@ -64,12 +65,12 @@ export default function CommentPanel({close,data}:props){
 
     // creating comments on post ..
     const commentMutation = useMutation<AxiosResponse<CommentResponse>,ApiError,CommentVariables>({
-        mutationFn:async({value,userId,data}:CommentVariables)=>{
-            return await commentQuery.createComment(value,userId,data);
+        mutationFn:async({value,userId,data,token}:CommentVariables)=>{
+            return await commentQuery.createComment(value,userId,data,token);
         },
         onSuccess:(res:AxiosResponse<CommentResponse>)=>{
             
-            queryClient.invalidateQueries({queryKey:["comments"]});
+            queryClient.invalidateQueries({queryKey:["comments",token]});
 
         },
         onError:(err:ApiError)=>{
@@ -80,7 +81,7 @@ export default function CommentPanel({close,data}:props){
 
     const handleComment=(e:string)=>{
         
-        commentMutation.mutate({value:e,userId,data:data?.media[0]?.url});
+        commentMutation.mutate({value:e,userId,data:data?.media[0]?.url,token});
     }
 
      if(isLoading){

@@ -33,7 +33,7 @@ type Account = {
 
 
 export default function ChatDashboard() {
-  const { userId } = useUser();
+  const { userId ,token} = useUser();
   const queryClient = useQueryClient();
   //open sidebar
   const [openSidebar,setOpenSidebar ] =useState<boolean|null>(false);
@@ -58,11 +58,11 @@ export default function ChatDashboard() {
 
   // fetch following list
   const { data: following, isLoading: followingLoading } = useQuery<Account[]>({
-   queryKey: ["following", userId],
+   queryKey: ["following", userId,token],
     queryFn:async () => {
-      if (!userId) throw new Error("invalid id");
-      const res = await followQuery.fetchFollowingAccounts(userId);
-   
+      if (!userId || !token) throw new Error("invalid id");
+      const res = await followQuery.fetchFollowingAccounts(userId,token);
+     console.log("following",res.data)
       return res.data.data;
     },
      enabled: !!userId 
@@ -71,11 +71,11 @@ export default function ChatDashboard() {
 
  // fetch follower list for msg 
  const {data:follower,isLoading:followerLoading}= useQuery<Account[]>({
-   queryKey: ["follower", userId],
+   queryKey: ["follower", userId,token],
     queryFn:async () => {
-      if (!userId) throw new Error("invalid id");
-      const res = await followQuery.fetchFollowerAccounts(userId);
-      
+      if (!userId || !token) throw new Error("invalid id");
+      const res = await followQuery.fetchFollowerAccounts(userId,token);
+      console.log("follower",res.data)
       return res.data.data;
     },
      enabled: !!userId 
@@ -83,7 +83,8 @@ export default function ChatDashboard() {
 
 
   useEffect(()=>{
-   setContactList(()=>[...(following || []),...(follower ||[])]);
+  
+   setContactList(()=>[...(following ?? []),...(follower ||[])]);
    
   },[following,follower]) 
 
@@ -108,7 +109,7 @@ export default function ChatDashboard() {
       // regardless of the specific roomId used in the cache key.
        if (payload?.message && payload.conversationId) {
           queryClient.invalidateQueries({
-          queryKey: ["senderMessages",payload.id,payload.conversationId]
+          queryKey: ["senderMessages",payload.id,payload.conversationId,token]
         });
       }
     // setting to send in chatText to send the fetch query in backend ..
@@ -117,7 +118,7 @@ export default function ChatDashboard() {
       // if refreshed ..
       // Also invalidate the active chat if open (so header preview / last message updates)
       queryClient.invalidateQueries({ 
-        queryKey: ["senderMessages",payload.id,payload.conversationId],
+        queryKey: ["senderMessages",payload.id,payload.conversationId,token],
        refetchType: "active"});
       console.log("new-message payload", payload.message,payload.conversationId);
     };
@@ -149,7 +150,7 @@ export default function ChatDashboard() {
 
       // optimistic UI: invalidate so React Query re-fetches messages
       queryClient.invalidateQueries({ 
-        queryKey: ["senderMessages",activeChat.id,newConversationId] ,
+        queryKey: ["senderMessages",activeChat.id,newConversationId,token] ,
         refetchType:"active"});
 
       socketRef.current?.emit("chat-message", {

@@ -6,20 +6,21 @@ import { useUser } from "@/hooks/userhook";
 import { userQuery } from "@/app/api/userQuery";
 
 export default function EditProfile() {
-  const { userId, email } = useUser();
+  const { userId, email,token } = useUser();
 
   const [formData, setFormData] = useState({
     name: "",
     email: email,
     bio: "",
     website: "",
+  
   });
 
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["userProfile", userId],
+    queryKey: ["userProfile", userId,token],
     queryFn: async ({ queryKey }) => {
-      const [, id] = queryKey as [string, string];
-      const res = await userQuery.fetchProfile(id);
+      const [, id,token] = queryKey as [string, string,string];
+      const res = await userQuery.fetchProfile(id,token);
       return res.data?.data;
     },
     enabled: !!userId,
@@ -37,12 +38,12 @@ export default function EditProfile() {
   }, [profile, email]);
 
   const editProfileMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async ({data,token}:{data: typeof formData,token:string}) => {
       return userQuery.editProfile(
         data.name,
         data.email,
         data.bio,
-        data.website
+        data.website,token
       );
     },
     onSuccess: () => {
@@ -59,7 +60,7 @@ export default function EditProfile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    editProfileMutation.mutate(formData);
+    editProfileMutation.mutate({data:formData,token:token});
   };
 
   if (isLoading) {

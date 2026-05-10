@@ -11,6 +11,10 @@ const videoSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    publicId:{
+        type:String,
+        required:true
+    },
     caption:{
         type:String,
         required:false

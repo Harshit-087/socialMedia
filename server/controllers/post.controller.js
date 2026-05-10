@@ -3,20 +3,21 @@ import Post from "../models/post.schema.js"
 import User from "../models/user.schema.js" 
 import {setCache,getCache} from "../services/redis/cache.js"
 import {redis } from "../config/connection.js"
+import * as validator from "../validator/post.validation.js"
 
 // data from cloudinary to store
 export const createPost = async(req,res)=>{
     try{
-    const {userId,publicId,url,caption} = req.body;
-    console.log("url",req.body)
-    const findUser = await User.findOne({_id:userId})
+     const validationResponse  = validator.createPostSchema.safeParse(req.body)
+  if(!validationResponse.success){
+    return res.status(400).json({msg:"validation error" ,error:validationResponse.error.issues})
+  }
+
+  const data = validationResponse.data
+    const findUser = await User.findOne({_id:data.userId})
     if(!findUser) return res.status(404).json({msg:"user not found"});
         
-    const savedPost = await Post.create({
-     userId,
-    caption,
-     media:[{publicId,url, position:0, mediaType: "image"}]
-    })
+    const savedPost = await Post.create(data)
 
 
    // ----*** IMPORTANT: clear cache****-----
@@ -35,19 +36,24 @@ export const createPost = async(req,res)=>{
 
 
 
-
+// profile posts
 export const showPosts = async(req,res)=>{
     try{
-        const {userId} =req.query
-        console.log("showpost userId",userId)
-        if(!userId) return res.status(400).json({msg:"userId is required"})
+
+         const validationResponse  = validator.findPost.safeParse(req.query)
+  if(!validationResponse.success){
+    return res.status(400).json({msg:"validation error" ,error:validationResponse.error.issues})
+  }
+
+  const data = validationResponse.data
+
 
        // fetching fromm cache
-        const key = `posts:${userId}`;
+        const key = `posts:${data.userId}`;
         const cachedData = await getCache(key);
         if(cachedData) return res.status(200).json({msg:"success from cache",data:cachedData})
 
-        const posts= await Post.find({userId}).populate("userId","username profileImage _id")
+        const posts= await Post.find({userId:data.userId}).populate("userId","username profileImage _id")
 
         // set the cache
         await setCache(key,posts,600);
@@ -84,16 +90,27 @@ export const allPost=async(req,res)=>{
 
 
 export const deletePost=async(req,res)=>{
-    const {publicId} = req.body;
-  await redis.del(`posts:${userId}`);
+   try{   
+
+    
+         const validationResponse  = validator.deletePostSchema.safeParse(req.body)
+  if(!validationResponse.success){
+    return res.status(400).json({msg:"validation error" ,error:validationResponse.error.issues})
+  }
+
+  const data = validationResponse.data
+
+  await redis.del(`posts:${data.userId}`);
   await redis.del("all_posts");
-  try{
-    const deletedpost =await Post.deleteOne({media:{$elemMatch:{publicId}}});
+
+    const deletedpost =await Post.deleteOne({media:{$elemMatch:{publicId:data.media.publicId}}});
     return res.status(200).json({msg:"deleted successfully"}) 
   }catch(err){
     return res.status(500).json({msg:"server error in deleting post"})
   }
 }
+
+
 
 // community post
 export const CreateCommunityPost=async(req,res)=>{
@@ -123,6 +140,8 @@ export const CreateCommunityPost=async(req,res)=>{
         return res.status(500).json({message:"internal server error",error:error.message})
     }
 }
+
+
 
 // community Post via cloudinary
 export const communityPost = async(req,res)=>{

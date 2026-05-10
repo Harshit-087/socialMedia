@@ -21,6 +21,7 @@ export default function CreateCommunity({ closeCreate }: { closeCreate: (v: bool
   const createCommunityMutation = useMutation({ 
     mutationFn:async(formData:FormData)=>{
       if(!formData) throw new Error("Id is invalid");
+      formData.append("token",token);
      return await communityQuery.createCommunity(formData)
    },
    onSuccess:(res)=>{

@@ -33,6 +33,7 @@ const userSlice = createSlice({
     initialState,
     reducers:{
         addSignup:(state,action: PayloadAction<{
+            accessToken: string,
         data: {
           username: string;
           role:string;
@@ -60,14 +61,14 @@ const userSlice = createSlice({
         },
         addLogin:(state,action)=>{
               state.isLoggedIn=true;
-            state.token = action.payload.token;
-            state.username=action.payload.username;
-            state.role=action.payload.role;
-            state.email=action.payload.email;
-            state.isPrivate=action.payload.isPrivate;  
-                 state.userId=action.payload._id;   
-                 state.bio=action.payload.bio;
-                 state.profileImage =action.payload.profileImage;
+            state.token = action.payload.accessToken;
+            state.username=action.payload.data.username;
+            state.role=action.payload.data.role; 
+            state.email=action.payload.data.email;
+            state.isPrivate=action.payload.data.isPrivate;  
+                 state.userId=action.payload.data._id;   
+                 state.bio=action.payload.data.bio;
+                 state.profileImage =action.payload.data.profileImage;
  
             //only work in client side ..
         if(typeof window !== "undefined"){

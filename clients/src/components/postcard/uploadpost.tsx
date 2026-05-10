@@ -41,7 +41,7 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
         },
         onSuccess:(res)=>{
              toast.success(res.data.msg)
-            queryClient.invalidateQueries({queryKey:["posts",userId]})
+            queryClient.invalidateQueries({queryKey:["posts",userId,token]})
             onClose();
         },
         onError:(err)=>{

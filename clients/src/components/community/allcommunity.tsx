@@ -8,28 +8,28 @@ import {Item} from "./dashboard"
 
 export default function AllCommunity({handleSelectedCommunity,community,Tab}:{handleSelectedCommunity:(v:string)=>void, community:(v:string|null)=>void ,Tab:string}){
        
-    const {userId} = useUser()
+    const {userId,token} = useUser()
 
      
          const {data,isLoading,isError} = useQuery({
-        queryKey:["community",userId,Tab],
+        queryKey:["community",userId,token,Tab],
         queryFn:async({queryKey})=>{
             if(Tab === "All_communities"){
-            const res = await communityQuery.fetchAllCommunity()
+            const res = await communityQuery.fetchAllCommunity(token)
             console.log("response all community",res.data.data);
             return res.data.data;
         }
         else if(Tab ==="My_communities"){
            const [ _,id] = queryKey as [string , string|undefined]
             if(!id) return ;
-            const res = await communityQuery.fetchMyCommunity(id)
+            const res = await communityQuery.fetchMyCommunity(id,token)
             console.log("response",res.data.data);
             return res.data.data;
         }
         else{
              const [ _,id] = queryKey as [string , string|undefined]
             if(!id) return ;
-            const res = await communityQuery.fetchjoinedCommunity(id)
+            const res = await communityQuery.fetchjoinedCommunity(id,token)
             console.log("response",res.data.data);
             return res.data.data;
         }

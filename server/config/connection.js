@@ -1,10 +1,11 @@
 import mongoose from "mongoose"
 import Redis from "ioredis";
+import {config} from "../config/config.js"
 
 
 const connectionDb=async()=>{
     try{
-        await mongoose.connect(`${process.env.MONGODB_URL}Social`)
+        await mongoose.connect(`${config.MONGO_URI}Social`)
         console.log("connected")
     }catch(error){
         console.log("mongodb is not connected")
@@ -13,10 +14,7 @@ const connectionDb=async()=>{
 }
 
 
-const redis = new Redis({
-  host: "127.0.0.1",
-  port: 6379,
-});
+const redis = new Redis(process.env.REDIS_URL);
 
 redis.on("connect", () => console.log("Redis connected"));
 redis.on("error", (err) => console.error("Redis error:", err));

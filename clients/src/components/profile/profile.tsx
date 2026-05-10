@@ -20,7 +20,7 @@ export default function ProfileComponent({
         sendClose:(v:boolean)=>void}){
    
    const [isFollowing,setIsFollowing]=useState<boolean>(false)
-     const {userId } = useUser();
+     const {userId ,token} = useUser();
      const queryClient = useQueryClient();
 
     // extracting the profile accountIdFromUrl 
@@ -28,22 +28,23 @@ export default function ProfileComponent({
     const accountIdFromUrl = searchParams.get("id");
 
      const {data:profile,isLoading,error}=useQuery({
-    queryKey:["profile",accountIdFromUrl],
+    queryKey:["profile",accountIdFromUrl,token],
     queryFn:async({queryKey})=>{
-      const [,id]=queryKey as [string ,string |undefined]
-      if(!id) return;
-      const res = await userQuery.fetchProfile(id)
+      const [,id,token]=queryKey as [string ,string |undefined,string]
+      if(!id || !token) return;
+      const res = await userQuery.fetchProfile(id,token)
       //  toast.success(res.data.msg)
+      console.log("profile",res.data)
       return res.data;
     }
   })
 
     const{data,isLoading:followLoading,error:followError}=useQuery({
-      queryKey:["follow",accountIdFromUrl,userId],
+      queryKey:["follow",accountIdFromUrl,userId,token],
       queryFn:async({queryKey})=>{
-         const [,id,userId]=queryKey as [string, string|undefined ,string|undefined];
-         if(!id || !userId) return ;
-         const res= await followQuery.following(id,userId)
+         const [,id,userId,token]=queryKey as [string, string|undefined ,string|undefined,string];
+         if(!id || !userId||!token) return ;
+         const res= await followQuery.following(id,userId,token)
          
         //  toast.success(res.data.msg)
          return res.data.data;
@@ -55,11 +56,11 @@ export default function ProfileComponent({
   
 
        const followMutation = useMutation<AxiosResponse<FollowResponse>, ApiError, FollowVariables>({
-    mutationFn: async ({ userId, accountId }: FollowVariables) => {
+    mutationFn: async ({ userId, accountId ,token}: FollowVariables) => {
       if (userId === accountId) {
         throw new Error("Cannot follow yourself");
       }
-      return await followQuery.follow(userId, accountId);
+      return await followQuery.follow(userId, accountId,token);
     },
     onSuccess: (res: AxiosResponse<FollowResponse>) => {
     
@@ -76,8 +77,8 @@ export default function ProfileComponent({
 
     useEffect(()=>{
   
-    queryClient.invalidateQueries({queryKey:["follow",accountIdFromUrl,userId]})
-     queryClient.invalidateQueries({queryKey:["followers",accountIdFromUrl,userId]})
+    queryClient.invalidateQueries({queryKey:["follow",accountIdFromUrl,userId,token]})
+     queryClient.invalidateQueries({queryKey:["followers",accountIdFromUrl,userId,token]})
     
   },[data,accountIdFromUrl,userId]) 
 
@@ -85,15 +86,15 @@ export default function ProfileComponent({
          <section className="w-full max-w-3xl flex flex-col items-center text-center mt-4">
           <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-zinc-700 shadow-md">
             <Image
-              src={profile?.data?.[0]?.profileImage || "/user.png"}
+              src={profile?.data?.profileImage || "/user.png"}
               alt="Profile"
               fill
               className="object-cover"
             />
           </div>
-          <p className="text-white mt-2 text-xl font-serif">{profile?.data?.[0].username}</p>
+          <p className="text-white mt-2 text-xl font-serif">{profile?.data?.username}</p>
 
-          <p className="mt-4 text-gray-300 max-w-md italic text-sm whitespace-normal block px-8">{profile?.data?.[0]?.bio || "No bio yet..."}</p>
+          <p className="mt-4 text-gray-300 max-w-md italic text-sm whitespace-normal block px-8">{profile?.data?.bio || "No bio yet..."}</p>
 
           {/* Stats */}
           <div className="flex justify-center items-center gap-10 mt-6">
@@ -127,12 +128,12 @@ export default function ProfileComponent({
             : (<div
            className="w-72 my-2 p-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-500 cursor-pointer"
           onClick={()=>{
-             followMutation.mutate({userId:userId as string ,accountId:accountIdFromUrl as string})
+             followMutation.mutate({userId:userId as string ,accountId:accountIdFromUrl as string,token:token as string})
            }}
           >follow</div>)
           )
          : (<div className="flex gap-4 justify-center my-4">
-             <Link href={`/account/${profile?.data?.[0].username}/editprofile`}> <div  className="border-2 border-gray-500 w-32 py-1 rounded-lg whitespace-nowrap">edit profile</div></Link>
+             <Link href={`/account/${profile?.data?.username}/editprofile`}> <div  className="border-2 border-gray-500 w-32 py-1 rounded-lg whitespace-nowrap">edit profile</div></Link>
          
         <Link href=""> <div className="border-2 border-gray-500 w-32 py-1 rounded-lg whitespace-nowrap">share profile</div></Link> 
           </div> )}

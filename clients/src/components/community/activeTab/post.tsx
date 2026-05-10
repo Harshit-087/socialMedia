@@ -38,9 +38,9 @@ export default function PostSection({communityId}:{communityId:string}) {
   const queryClient = useQueryClient()
 
   const {data,isLoading,isError}=useQuery({
-    queryKey:["communityPost",communityId],
+    queryKey:["communityPost",communityId,token],
     queryFn:async()=>{
-      const res = await postQuery.fetchCommunityPost(communityId);
+      const res = await postQuery.fetchCommunityPost(communityId,token);
       console.log("res.data.data:",res)
       return res.data.data;
     },

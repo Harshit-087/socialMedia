@@ -15,12 +15,13 @@ export default function SlotsComponent({ id }: { id: string }) {
   const [createStory, setCreateStory] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabType>("posts");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["profile", id],
+  const { data:profile, isLoading } = useQuery({
+    queryKey: ["profile", id,token],
     queryFn: async ({ queryKey }) => {
-      const [, id] = queryKey as [string, string | undefined];
-      if (!id) return;
-      const res = await userQuery.fetchProfile(id);
+      const [, id,token] = queryKey as [string, string | undefined,string];
+      if (!id || !token) return;
+      const res = await userQuery.fetchProfile(id,token);
+      console.log("post",res.data)
       return res.data;
     },
   });
@@ -94,8 +95,8 @@ export default function SlotsComponent({ id }: { id: string }) {
 
         {activeTab === "posts" && (
           <div className="animate-in fade-in duration-500">
-            {data?.data?.[0]?._id ? (
-              <Posts userid={data.data[0]._id} />
+            {profile?.data?._id ? (
+              <Posts userid={profile.data._id} />
             ) : (
               <p className="text-center text-zinc-500 py-20">No posts yet</p>
             )}

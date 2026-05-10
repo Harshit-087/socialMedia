@@ -10,13 +10,14 @@ import FollowerAccount from "@/components/followerAccount/follower"
 import ProfileComponent from "@/components/profile/profile";
 import SlotsComponent from "@/components/profile/slots";
 import FollowingAccount from "@/components/followerAccount/following";
+import { useUser } from "@/hooks/userhook";
 
 
 export default function Profile() {
      
  const [seeAllAccounts,setSeeAllAccounts]=useState<"following" | "followers"|null>(null); 
    const [close ,setClose]=useState<boolean>(false);
-
+  const {token}  = useUser()
  const searchParam =useSearchParams()
  const id = searchParam.get("id")
 
@@ -30,11 +31,11 @@ export default function Profile() {
   }
 
   const {data:followerAccounts=[],isLoading:followersAccountsLoading,error:followersAccountsError}=useQuery({
-    queryKey:["followerAccount",id],
+    queryKey:["followerAccount",id,token],
     queryFn:async()=>{
       
-      if(!id ) throw new Error("Missing id or label");;
-      const res = await followQuery.fetchFollowerAccounts(id); 
+      if(!id || !token ) throw new Error("Missing id or label");;
+      const res = await followQuery.fetchFollowerAccounts(id,token); 
       
       return res.data.data;
   },
@@ -43,11 +44,11 @@ export default function Profile() {
  
 
   const {data:followingAccounts=[]}=useQuery({
-    queryKey:["following-Account",id],
+    queryKey:["following-Account",id,token],
     queryFn:async()=>{
       
-      if(!id) return;
-      const res = await followQuery.fetchFollowingAccounts(id)
+      if(!id|| !token) return;
+      const res = await followQuery.fetchFollowingAccounts(id,token)
      
       return res.data.data
     },

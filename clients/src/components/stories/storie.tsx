@@ -42,15 +42,15 @@ export default function Stories(){
     const [profileImageStory,setProfileImageStory]=useState<string>("");
     const [profileUsernameStory,setProfileUsernameStory]=useState<string>("");
     const [current ,setCurrent] = useState<number>(0);
-    const {profileImage,userId}=useUser()
+    const {profileImage,userId,token}=useUser()
     const [openStory,setOpenStory] =useState<boolean>(false)
 
     const {data:Result={},isLoading,error} =useQuery({
-      queryKey:["story",userId],
+      queryKey:["story",userId,token],
       queryFn:async({queryKey})=>{
-        const [_,id] =queryKey as [string , string ]
+        const [_,id,token] =queryKey as [string , string ,string]
        
-        const res=await storyQuery.fetchStory(id);
+        const res=await storyQuery.fetchStory(id,token);
         console.log("query Data",res)
         return res.data;
       }

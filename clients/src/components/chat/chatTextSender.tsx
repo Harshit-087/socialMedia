@@ -19,15 +19,15 @@ export type Message = {
 };
 
 export default function ChatText({ id, setActive,convers_Id }: { id: string; setActive: (v: string) => void; convers_Id?:string }) {
-  const { userId } = useUser();
+  const { userId ,token} = useUser();
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const { data, isLoading, isError, error, isFetching } = useQuery<Message[]>({
-    queryKey: ["senderMessages",id,convers_Id],
+    queryKey: ["senderMessages",id,token,convers_Id],
     queryFn: async () => {
-      if (!userId || !id) return [];
+      if (!userId || !id||!token) return [];
       console.log("Fetching messages for:", convers_Id);
-      const res = await messageQuery.fetchMessage(id,convers_Id);
+      const res = await messageQuery.fetchMessage(id,token,convers_Id);
       // backend returns isActive as number (1) or undefined/0
       setActive(res?.data?.isActive === 1 ? "online" : "offline");
      

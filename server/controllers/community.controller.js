@@ -1,6 +1,7 @@
 import Community from "../models/community.schema.js"
 import mongoose from "mongoose"
 import {redis } from "../config/connection.js"
+import {setCache,getCache} from "../services/redis/cache.js"
 
 //  Naming inconsistency
 // AdminId
@@ -81,9 +82,26 @@ export const openCommunity = async(req,res)=>{
     const {id} = req.query;
     if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid ID" });
-}
+} 
+   // trying lookup query.. with projection --
     try{
-        const openCommunity = await Community.findById(id);
+        const openCommunity = await Community.aggregate([
+          {$match:{_id:new mongoose.Types.ObjectId(id)}},
+          {$lookup:{
+            from:"users",
+            let:{memberIds:"$Members_Id"},
+            pipeline:[
+              {$match:{$expr:{$in:["$_id","$$memberIds"]}}}, // Members_id is array $$
+              {$project:{
+                username:1,
+                profileImage:1,
+                _id:1
+              }}
+            ],
+            as:"members"
+          }}
+        ])
+        console.log("open community",openCommunity)
         return res.status(200).json({message:"opened community",data:openCommunity})
     }catch(error){
     return res.status(500).json({message:"internal server error",error:error.message});

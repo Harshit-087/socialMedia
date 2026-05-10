@@ -18,15 +18,15 @@ export type VideoItem={
 }
 
 export default function Videos(){
-  const {userId} = useUser();
+  const {userId,token} = useUser();
   const [open,setOpen] =useState<boolean>(false);
 
   const {data = [], isLoading, error} = useQuery<VideoItem[], Error>({
-    queryKey:["videos",userId],
+    queryKey:["videos",userId,token],
     queryFn:async({queryKey})=>{
-        const [ , id] =queryKey as [string,string|undefined]
-        if(!id) return [];
-        const res = await videoQuery.fetchUserVideos(id);
+        const [ , userId,token] =queryKey as [string,string|undefined,string]
+        if(!userId) return [];
+        const res = await videoQuery.fetchUserVideos(userId,token);
        
         return res.data.data;
     }

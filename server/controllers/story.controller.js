@@ -1,33 +1,48 @@
 import Story from "../models/stories.schema.js"
 import {redis} from "../config/connection.js"
 import {setCache,getCache} from "../services/redis/cache.js"
-
+import * as validator from "../validator/story.validator.js"
+ 
 export const createStory = async(req,res)=>{
-   const {userId,mediatype,url,public_url} =req.body;
-   console.log("story reached ");
+     try{   // 1. Validate input
+    const validation = validator.createStorySchema.safeParse(req.body)
+
+    if (!validation.success) {
+      return res.status(400).json({
+        message: "validation error",
+        error: validation.error.issues,
+      })
+    }
+
+    const data = validation.data
    
    // invalidate cache
-   await redis.del(`story:${userId}`);
-   try{
-    const uploadStory = await Story.create({
-        userId:userId,
-        mediaUrl:public_url,
-        secure_url:url,
-        mediaType:mediatype,
-    })
-    return res.json({message:"created story",data:uploadStory})
+   await redis.del(`story:${data.userId}`);
+ 
+    const uploadStory = await Story.create(data)
+    return res.status(201).json({message:"created story",data:uploadStory})
    }catch(err){
-    return res.json({message:"error in creating story",error:err.message})
+    return res.status(500).json({message:"error in creating story",error:err.message})
    }
 }
 
 export const FetchStory = async(req,res)=>{
-    const {id} = req.query;
+    try{
+     const validation = validator.fetchStorySchema.safeParse(req.query)
+
+    if (!validation.success) {
+      return res.status(400).json({
+        message: "validation error",
+        error: validation.error.issues,
+      })
+    }
+
+    const {id} =validation.data;
   // fetching story for explore page
   const key = `story:${id}`;
   const cachedData = await getCache(key);
   if(cachedData) return res.status(200).json({msg:"success from cache story",data:cachedData})
-    try{
+    
         const fetchStory = await Story.find({userId:id});
 
         // set in the cache
@@ -37,6 +52,6 @@ export const FetchStory = async(req,res)=>{
 
     }catch(error){
         console.log("error in fetching the story")
-        return res.json({message:"internal server error",error:error.message})
+        return res.status(500).json({message:"internal server error",error:error.message})
     }
 }
