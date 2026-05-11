@@ -3,14 +3,15 @@ import {redis} from "../config/connection.js";
 
 
 export const chatHandler = (io,socket)=>{
-    socket.on("chat-message",async({senderId,recieverId,message})=>{
-        console.log("chat message",senderId,recieverId,message)
+    socket.on("chat-message",async({senderId,receiverId,message})=>{
+        console.log("chat message",senderId,receiverId,message)
 
-        const conversationId = [senderId,recieverId].sort().join("_");
+        const conversationId = [senderId,receiverId].sort().join("_");
+        const createdAt = new Date().toISOString();
 
-        // emit to sender and reciever both for faster ui
-        const payload ={senderId,recieverId,message,conversationId,id:senderId};
-        io.to(recieverId).emit("new-message",payload);
+        // emit to sender and receiver both for faster ui
+        const payload ={senderId,receiverId,message,conversationId,id:senderId,createdAt};
+        io.to(receiverId).emit("new-message",payload);
         io.to(senderId).emit("new-message",payload);
 
         // 2. Add to Redis Stream (The "Beginner" way)
@@ -18,9 +19,10 @@ export const chatHandler = (io,socket)=>{
         try{
             await redis.xadd("chat_stream","*",
                 "senderId",senderId,
-                "recieverId",recieverId,
+                "receiverId",receiverId,
                 "message",message,
-                "conversationId",conversationId
+                "conversationId",conversationId,
+                "createdAt", createdAt
             )
         }catch(error){
             console.error("Failed to add to stream:", error);

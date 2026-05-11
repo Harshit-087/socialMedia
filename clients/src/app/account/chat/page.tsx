@@ -17,6 +17,7 @@ import { CiMenuBurger } from "react-icons/ci";
 import { FaCircleArrowLeft } from "react-icons/fa6";
 import { AnimatePresence } from "framer-motion";
 import Footer from "@/components/footer/footer";
+import { Message } from "@/components/chat/chatTextSender";
 
 type Account = {
   followerId?: {
@@ -30,6 +31,15 @@ type Account = {
     _id: string;
   };
 };
+
+type Payload={
+  senderId:string,
+  receiverId:string
+  message:string
+  conversationId:string
+  id:string
+  createdAt:string
+}
 
 
 export default function ChatDashboard() {
@@ -81,91 +91,71 @@ export default function ChatDashboard() {
      enabled: !!userId 
 });
 
+//Use a Map or a filter to ensure unique IDs. If user A follows user B and user B follows user A, that person will appear twice
+useEffect(() => {
+  const combined = [...(following ?? []), ...(follower ?? [])];
+  const unique = Array.from(new Map(combined.map(item => [
+    item.followerId?._id || item.followingId?._id, 
+    item
+  ])).values());
+  setContactList(unique);
+}, [following, follower]);
 
-  useEffect(()=>{
-  
-   setContactList(()=>[...(following ?? []),...(follower ||[])]);
+
+// 1. Unified function to generate conversation IDs
+const getConvId = (id1: string, id2: string) => [id1, id2].sort().join("_");
+
+useEffect(() => {
+  if (!userId || !token) return;
+
+  const s = GetSocket(userId);
+  socketRef.current = s;
+
+  const onNewMessage = (payload: Payload) => {
+    // Determine the 'other' person in the chat to find the right cache key
+    const otherPartyId = payload.senderId === userId ? payload.receiverId : payload.senderId;
+    const conversationId = getConvId(userId, otherPartyId);
+
    
-  },[following,follower]) 
-
-  // Initialize socket when userId is available (defer server-side issues)
-  useEffect(() => {
-    if (!userId ) return;
-
-    // create socket instance (GetSocket should handle creating/returning connected socket)
-    // If GetSocket returns a single shared socket per user, adapt accordingly.
-    const s = GetSocket(userId);
-    socketRef.current = s;
-
-    const onConnect = () => console.log("socket connected", s.id);
-    s.on("connect", onConnect);
-
-    
-
-    // handle incoming realtime messages (invalidate react-query so UI refreshes)
-   const onNewMessage = (payload: {message:string,conversationId:string,id:string}) => {
-      // Invalidate message queries so the UI refreshes with the latest messages.
-      // Use a partial query key so all conversations for this user are refreshed,
-      // regardless of the specific roomId used in the cache key.
-       if (payload?.message && payload.conversationId) {
-          queryClient.invalidateQueries({
-          queryKey: ["senderMessages",payload.id,payload.conversationId,token]
-        });
-      }
-    // setting to send in chatText to send the fetch query in backend ..
+     const queryKey= ["senderMessages", otherPartyId, conversationId, token];
+     queryClient.setQueryData(queryKey,(oldData:Message[]=[])=>{
+      const exist = oldData.find((msg:Message)=>msg.message === payload.message && msg.createdAt === payload.createdAt);
+      if(exist) return oldData;
+      return [...(oldData),{...payload,createdAt:payload.createdAt||new Date().toISOString()}]
+     })
       
+  };
 
-      // if refreshed ..
-      // Also invalidate the active chat if open (so header preview / last message updates)
-      queryClient.invalidateQueries({ 
-        queryKey: ["senderMessages",payload.id,payload.conversationId,token],
-       refetchType: "active"});
-      console.log("new-message payload", payload.message,payload.conversationId);
-    };
- 
-    s.on("new-message", onNewMessage); 
-    return () => {
-      s.off("connect", onConnect);
-      s.off("new-message", onNewMessage);
-      // NOTE: don't call s.disconnect() here if GetSocket manages a shared socket
-      // If GetSocket returns a dedicated socket per component, you may want to disconnect.
-    };
-  }, [userId]);
-//  here following account [0].followid._id is not used because if 1 folllow other while 2 donot follow the sender then the invalidation does not happen .
-// no msg reach to reciever...
-  
-  //  
-  //  (e: React.FormEvent<HTMLFormElement | Element>) => {  
+  s.on("new-message", onNewMessage);
+  return () => {
+    s.off("new-message", onNewMessage);
+  };
+}, [userId, token, queryClient]);
 
-
-  // Send message through socket; ensure activeChat.id is used (not data[0])
-  const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement|Element>) => {
-      e.preventDefault();
-      const form = (e as React.FormEvent<HTMLFormElement>).currentTarget;
+const handleSubmit = useCallback(
+  (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = (e as React.FormEvent<HTMLFormElement>).currentTarget;
       const input = form.querySelector("input[name='message']") as HTMLInputElement | null;
       const value = input?.value?.trim();
       if (!value || !userId || !activeChat.id) return;
-      const newConversationId= [userId,activeChat.id].sort().join("_");
+    
+    const convId = getConvId(userId, activeChat.id);
 
-      // optimistic UI: invalidate so React Query re-fetches messages
-      queryClient.invalidateQueries({ 
-        queryKey: ["senderMessages",activeChat.id,newConversationId,token] ,
-        refetchType:"active"});
+    // Emit to server
+    socketRef.current?.emit("chat-message", {
+      message: value,
+      senderId: userId,
+      receiverId: activeChat.id,
+      conversationId: convId // Pass this so the server can echo it back
+    });
 
-      socketRef.current?.emit("chat-message", {
-        message: value,
-        senderId: userId,
-        receiverId: activeChat.id,
-      });
+    // Clear input
+    if (input) input.value = "";
+  },
+  [activeChat.id, userId, token]
+);
 
-      
-
-      // clear the input
-      if (input) input.value = "";
-    },
-    [activeChat.id, queryClient, userId]
-  );
 
   // function creates once not again and again as re-render, due to useCallback.
   //  only when dependency cahnge the new function is created .

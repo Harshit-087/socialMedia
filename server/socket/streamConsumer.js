@@ -6,13 +6,15 @@ import Message from "../models/message.schema.js";
 
 export const startStreamConsumer = async()=>{
     console.log("Redis Stream Consumer started...");
+    
+    let lastId ="0"
 
     while(true){
         try{
             // BLOCK 5000: Wait up to 5 seconds for a new message
            // '$': Only read messages that arrive AFTER we start listening
            // '0' means: Start from the very first message in the stream
-            const response = await redis.xread("BLOCK",5000,"STREAMS","chat_stream","$")
+            const response = await redis.xread("BLOCK",1000,"STREAMS","chat_stream",lastId)
             console.log("Stream response:", response);
 
             if (response) {
@@ -36,6 +38,10 @@ export const startStreamConsumer = async()=>{
             await Message.create(data);
                 console.log("Message saved to MongoDB:", data);
                 
+             // 3. Update our pointer to THIS message ID
+                    // The next xread will ask for messages GREATER than this ID
+                    lastId = id;
+
             // Remove from stream so it doesn't grow forever    
             await redis.xdel("chat_stream",id);    
         }}

@@ -1,11 +1,9 @@
-// app/components/chat/chatTextSender.tsx
 "use client";
 
-import React, { useEffect,useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/userhook";
 import { messageQuery } from "@/app/api/messageQuery";
-
 
 export type Message = {
   _id?: string;
@@ -15,83 +13,81 @@ export type Message = {
   message: string;
   mediaUrl?: string;
   isRead?: boolean;
-  createdAt?: string;
+  createdAt: string;
 };
 
-export default function ChatText({ id, setActive,convers_Id }: { id: string; setActive: (v: string) => void; convers_Id?:string }) {
-  const { userId ,token} = useUser();
+export default function ChatText({ id, setActive, convers_Id }: { id: string; setActive: (v: string) => void; convers_Id?: string }) {
+  const { userId, token } = useUser();
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  const { data, isLoading, isError, error, isFetching } = useQuery<Message[]>({
-    queryKey: ["senderMessages",id,token,convers_Id],
+  const { data, isLoading, isError, error } = useQuery<Message[]>({
+    // CRITICAL: Must match the order used in ChatDashboard.tsx invalidation
+    queryKey: ["senderMessages", id, convers_Id, token], 
     queryFn: async () => {
-      if (!userId || !id||!token) return [];
-      console.log("Fetching messages for:", convers_Id);
-      const res = await messageQuery.fetchMessage(id,token,convers_Id);
-      // backend returns isActive as number (1) or undefined/0
-      setActive(res?.data?.isActive === 1 ? "online" : "offline");
-     
-      return res.data.data as Message[];
-    },
-    
-      enabled:  !!convers_Id ,
+      if (!userId || !id || !token || !convers_Id) return [];
+      const res = await messageQuery.fetchMessage(id, token, convers_Id);
       
-        // optional: refetch on window focus for live-ish behavior
-        refetchOnWindowFocus: false,
-    }
-  );
+      if (res?.data) {
+        setActive(res.data.isActive === 1 ? "online" : "offline");
+        return res.data.data as Message[];
+      }
+      return [];
+    },
+    enabled: !!convers_Id && !!token && !!userId,
+    refetchOnWindowFocus: false,
+  });
 
-  // on message received via socket, invalidate this query to refresh messages
-  
+  // Scroll to bottom logic
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // scroll to bottom when messages change
-  // useLayoutEffect runs after React has updated the DOM, but before the browser paints.
   useLayoutEffect(() => {
-    if (!bottomRef.current) return;
-    // use smooth only when not initial load, or you can always use smooth
-    bottomRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [data?.length]);
-
-  // debug log for query errors (keeps console clean)
-  useEffect(() => {
-    if (error) {
-      console.error("ChatText query error:", error);
+    if (data && data.length > 0) {
+      scrollToBottom();
     }
-  }, [error]);
+  }, [data]); // Trigger every time the data array changes
 
-  if (isLoading) return <p className="text-zinc-600">Loading messages...</p>;
-  if (isError) return <p className="text-red-500">Error loading messages</p>;
-
-
+  if (isLoading) return <div className="p-4 text-zinc-500 animate-pulse">Loading messages...</div>;
+  if (isError) return <div className="p-4 text-red-500">Failed to load chat.</div>;
 
   return (
-   <div className="flex flex-col gap-2">
-  {data?.length === 0 && (
-    <div className="text-zinc-400 italic text-center mt-4">
-      No messages yet. Say hi 👋
+    <div className="flex flex-col gap-3 px-4 pt-2 min-h-full">
+      {data?.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-zinc-500 italic">
+          No messages yet. Say hi 👋
+        </div>
+      ) : (
+        data?.map((item: Message, index: number) => {
+          const isMe = item.senderId === userId;
+          return (
+            <div
+              key={item._id || `${item.createdAt}-${index}`} // Fallback key if _id is missing
+              className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+            >
+              <div
+                className={`max-w-[80%] px-4 py-2 rounded-2xl shadow-sm break-words
+                  ${isMe 
+                    ? "bg-green-600 text-white rounded-br-none" 
+                    : "bg-zinc-800 text-white rounded-bl-none"}
+                `}
+              >
+                <p className="text-sm md:text-base">{item.message}</p>
+              </div>
+              
+              {/* Optional: Add a tiny timestamp */}
+              {item.createdAt && (
+                <span className="text-[10px] text-zinc-500 mt-1 px-1">
+                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </div>
+          );
+        })
+      )}
+      
+      {/* Invisible element to anchor the scroll */}
+      <div ref={bottomRef} className="h-1 w-full" />
     </div>
-  )}
-
-  {data?.map((item: Message, index: number) => {
-    const mine = item.senderId === userId;
-    return (
-      <div
-        key={item._id || index} // use index as fallback key if _id is not available
-        className={`max-w-[75%] px-4 py-2 rounded-2xl break-words relative shadow-sm
-          ${mine
-            ? "self-end bg-gradient-to-br from-green-600 to-green-800 text-white"
-            : "self-start bg-gradient-to-br from-pink-500 to-pink-700 text-white"}
-        `}
-      >
-        {item.message}
-       
-      </div>
-    );
-  })}
-
-  {/* sentinel element to scroll into view */}
-  <div ref={bottomRef} />
-</div>
-
   );
 }

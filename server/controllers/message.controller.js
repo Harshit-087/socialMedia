@@ -2,7 +2,7 @@ import Message from "../models/message.schema.js";
 import {io} from "../script.js"
 
 export const sendMessage = async(req,res)=>{
-   const {id,convers_id} = req.query; 
+   const {id,convers_id} = req.query; // recieverId and conversationId
    console.log("recieved the idds :",convers_id)
 
 try{ 
