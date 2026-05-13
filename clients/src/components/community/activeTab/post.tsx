@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   ImagePlus,
 } from "lucide-react"
+import { PostSkeleton } from "@/components/skeleton/postSkeleton";
 
 type PostType = {
   _id:string
@@ -37,6 +38,7 @@ export default function PostSection({communityId}:{communityId:string}) {
   const {userId,token} = useUser() 
   const queryClient = useQueryClient()
 
+  // fetching the communityPost ...
   const {data,isLoading,isError}=useQuery({
     queryKey:["communityPost",communityId,token],
     queryFn:async()=>{
@@ -110,6 +112,17 @@ export default function PostSection({communityId}:{communityId:string}) {
       s.off("new_community_post")
     };
   },[communityId,queryClient])
+
+
+  if(isLoading){
+    return(
+      <div className="space-y-4">
+        {[...Array(5)].map((_,i)=>(
+          <PostSkeleton key={i}/>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto mt-10 space-y-6">

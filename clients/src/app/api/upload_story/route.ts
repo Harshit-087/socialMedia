@@ -23,42 +23,44 @@ export async  function POST(request:NextRequest){
     if((story.size)>10*1024*1024){
         return NextResponse.json({message:"the file is too large"},{status:400})
     }
+    console.log("going to cloudinary")
 
     try{
-        const uploadStory =await new Promise<CloudinaryUploadResponse>(
-            (resolve,reject)=>{
-                const storyUploading = cloudinary.uploader.upload_stream(
-                     {
-                        upload_preset:"socialmedia_story_preset",  // instead of uploading to folder amnually we do this 
-                        resource_type:"auto"
-                     },
-                     (error,result)=>{
-                        if(error) {reject(error)}
-                        else{
-                            resolve(result as CloudinaryUploadResponse)
-                        }
-                     }
-                )
-                storyUploading.on("finished",()=>console.log("stream finished"))
-                storyUploading.on("error",(error)=>console.log("errorr in uploading ",error))
+      const uploadStory = await new Promise<CloudinaryUploadResponse>((resolve, reject) => {
+    const storyUploading = cloudinary.uploader.upload_stream(
+      {
+        folder: "socialmedia_story",
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Callback Error:", error);
+          return reject(error); // This breaks the promise so the catch block runs
+        }
+        if (!result) {
+          return reject(new Error("Cloudinary upload resulted in empty response"));
+        }
+        resolve(result as CloudinaryUploadResponse); // This allows code to proceed
+      }
+    );
 
-                storyUploading.end(buffer);
-            }
-        )
+    // End the stream and send the buffer
+    storyUploading.end(buffer);
+  });
 
         console.log("uploading story to backend")
 
         const backendResponse = await axios.post(
-            `${process.env.BACKEND_URL}/story-api/create`,{
+            `${process.env.BACKEND_URL}/story-api/create_story`,{
                 userId:userId,
                 public_url:uploadStory.public_id,
                 url:uploadStory.secure_url,
-                mediatype:uploadStory.resource_type
+                mediaType:uploadStory.resource_type
             },{
                 headers:{
                     "content-type":"application/json",
                     Authorization:`Bearer ${token}`
-                },timeout:10000
+                },timeout:20000
             })
      console.log("Backend response:", backendResponse.data);
 

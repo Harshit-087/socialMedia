@@ -6,10 +6,10 @@ const storySchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    mediaUrl:{
+    public_url:{
         type:String
     },
-    secure_url:{type:String},
+    url:{type:String},
     mediaType:{
         type:String                     // "image" | "video"
     },

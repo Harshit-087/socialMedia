@@ -21,7 +21,7 @@ export const createPost = async(req,res)=>{
 
 
    // ----*** IMPORTANT: clear cache****-----
-        await redis.del(`posts:${userId}`);
+        await redis.del(`posts:${data.userId}`);
         await redis.del("all_posts");
 
 

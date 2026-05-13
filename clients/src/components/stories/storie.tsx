@@ -8,10 +8,18 @@ import Link from "next/link"
 import { MoveLeft,ChevronLeft,ChevronRight ,X} from "lucide-react"
 import { AnimatePresence,motion } from "framer-motion"
 
+type userPayload={
+  username:string;
+  _id:string
+  profileImage:string
+}
+
 interface StoryData{
   _id:string;
-  mediaUrl:string;
-  secure_url:string;
+  userId:userPayload
+  url:string;
+  public_url:string;
+  mediaType:string
 }
 
 
@@ -22,17 +30,7 @@ export interface FollwingAccountStory{
     profileImage:string;
     
   },
-  stories:[{
-  _id:string;
-  mediaUrl:string;
-  secure_url:string
-  userId:{
-    _id:string;
-    username:string;
-    profileImage:string;
-  }
-  
-  }]
+  stories:StoryData[]
 }
 
 export default function Stories(){
@@ -45,13 +43,13 @@ export default function Stories(){
     const {profileImage,userId,token}=useUser()
     const [openStory,setOpenStory] =useState<boolean>(false)
 
-    const {data:Result={},isLoading,error} =useQuery({
+    const {data:Result=[],isLoading,error} =useQuery({
       queryKey:["story",userId,token],
       queryFn:async({queryKey})=>{
         const [_,id,token] =queryKey as [string , string ,string]
        
         const res=await storyQuery.fetchStory(id,token);
-        console.log("query Data",res)
+        console.log("query story Data",res.data)
         return res.data;
       }
     })
@@ -138,7 +136,7 @@ export default function Stories(){
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
         {/* Blurred background for cinema effect */}
         <div className="absolute inset-0 opacity-40 blur-3xl scale-110">
-           <Image src={showStory[current]?.secure_url} fill className="object-cover" alt="bg" />
+           <Image src={showStory[current]?.url} fill className="object-cover" alt="bg" />
         </div>
 
         <div className="relative w-full h-full md:h-[90vh] md:max-w-[450px] md:rounded-2xl overflow-hidden bg-[#1a1a1a] shadow-2xl">
@@ -181,7 +179,7 @@ export default function Stories(){
                 className="w-full h-full"
               >
                 <Image
-                  src={showStory[current]?.secure_url}
+                  src={showStory[current]?.url}
                   fill
                   className="object-contain"
                   alt="story"

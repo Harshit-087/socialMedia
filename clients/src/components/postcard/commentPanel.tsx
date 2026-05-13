@@ -14,6 +14,7 @@ import toast from "react-hot-toast"
 import {ApiError} from "../auth/loginCard"
 import {AxiosResponse} from "axios"
 import {PostType} from "./card"
+import { PostSkeleton } from "../skeleton/postSkeleton"
 
 interface props{
     close:()=>void;
@@ -85,7 +86,13 @@ export default function CommentPanel({close,data}:props){
     }
 
      if(isLoading){
-        return <p>loading comments ......</p>;
+        return (
+            <div className="space-y-4">
+                {[...Array(5)].map((_,i)=>(
+                    <PostSkeleton key={i}/>
+                ))}
+            </div>
+        );
     }
 
     if(error){

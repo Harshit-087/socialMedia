@@ -31,7 +31,7 @@ export async function POST(request: NextRequest){
   file instanceof File ? file :
   image instanceof File ? image :
   null
-      
+      console.log("entered",token,userId)
       if(!selectedFile){
         return NextResponse.json({error:"file not provided"},{status:400})
       }
@@ -95,12 +95,18 @@ export async function POST(request: NextRequest){
       //use {} for body and headers
     await axios.post(
       `${process.env.BACKEND_URL}/post-api/uploadPost`,
+     {
+    userId,
+    caption: caption,
+    // Wrap the Cloudinary result in the expected 'media' array
+    media: [
       {
-        userId,
-        publicId: result.public_id,
         url: result.secure_url,
-        caption:caption
-      },
+        publicId: result.public_id,
+        mediaType: result.resource_type === 'video' ? 'video' : 'image',
+      }
+    ]
+  },
       {
         headers: {
           "Content-Type": "application/json",

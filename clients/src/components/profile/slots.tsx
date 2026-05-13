@@ -26,6 +26,7 @@ export default function SlotsComponent({ id }: { id: string }) {
     },
   });
 
+  // uploading story
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       return await storyQuery.upload(formData);

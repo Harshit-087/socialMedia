@@ -69,7 +69,7 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
          const compressedFile = await imagecompression(file,{maxSizeMB:1})
          formData.append("pictures", compressedFile);
          formData.append("caption",caption.value)
-         formData.append("id",userId)
+         formData.append("userId",userId)
          formData.append("token",token)
           // dispatch(uploadImage(file.name))
           uploadMutation.mutate( formData)    

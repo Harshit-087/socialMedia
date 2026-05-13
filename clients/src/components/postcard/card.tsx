@@ -15,6 +15,7 @@ import { ApiError } from "../auth/loginCard"
 import Link from "next/link";
 import { videoQuery } from "@/app/api/videoQuery"
 import { VideoItem } from "../video/videos"
+import { PostSkeleton } from "../skeleton/postSkeleton";
 
 
 export type MediaItem = { url: string; type?: string; position?: number }
@@ -119,9 +120,11 @@ export default function PostCard() {
 
   if (postLoading) {
     return (
-      <div className="flex flex-col items-center gap-4 mt-20">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent  rounded-full animate-spin" />
-        <p className="text-sm font-medium text-zinc-500 tracking-widest uppercase">Fetching Feed...</p>
+      <div className="space-y-4">
+        {[...Array(5)].map((_,i)=>(
+             <PostSkeleton key={i}/>
+        ))}
+       
       </div>
     );
   }

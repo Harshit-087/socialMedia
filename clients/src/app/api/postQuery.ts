@@ -22,11 +22,12 @@ export const postQuery= {
            }})
     },
     uploadPost:async(data:FormData)=>{
+        console.log("entered in api call ")
         // the formdata should not wrapp inside {} , so we append the userId and token to formdata
         const token = data.get("token")
         return await axios.post("/api/image_upload", data,{
              headers:{
-                "content-type":"application/json",
+                "content-type":"multipart/form-data",
                "Authorization":`Bearer ${token}`
            }
         } )

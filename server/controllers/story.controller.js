@@ -14,7 +14,7 @@ export const createStory = async(req,res)=>{
       })
     }
 
-    const data = validation.data
+    const data = validation.data;
    
    // invalidate cache
    await redis.del(`story:${data.userId}`);
@@ -43,7 +43,7 @@ export const FetchStory = async(req,res)=>{
   const cachedData = await getCache(key);
   if(cachedData) return res.status(200).json({msg:"success from cache story",data:cachedData})
     
-        const fetchStory = await Story.find({userId:id});
+        const fetchStory = await Story.find({userId:id}).populate("userId","username profileImage _id");
 
         // set in the cache
         await setCache(key,fetchStory,600);
