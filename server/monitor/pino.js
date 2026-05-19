@@ -1,6 +1,5 @@
 import pino from "pino";
-
-export const logger = pino({
+ const logger = pino({
   level: "info",
   transport: {  
     targets:[                    //Logs are no longer printed to console by default

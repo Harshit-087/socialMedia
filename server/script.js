@@ -7,9 +7,9 @@ import router from "./router/router.js";
 import  {connectionDb}  from "./config/connection.js";
 import dotenv from 'dotenv'
 import Message from "./models/message.schema.js";
-import {logger} from "./monitor/pino.js"
-import {requestCounter} from "./monitor/promClient.js"
-import client from "prom-client"
+// import {logger} from "./monitor/pino.js"
+// import {requestCounter} from "./monitor/promClient.js"
+// import client from "prom-client"
 import mongoose from "mongoose";
 import { SocketMain } from "./socket/socketMain.js";
 import { startStreamConsumer } from "./socket/streamConsumer.js";
@@ -48,30 +48,30 @@ app.use(cors({
 app.use(cookieParser());
 
 // pino logger 
-app.use((req, res, next) => {
-  logger.info({
-    method: req.method,
-    url: req.url,
-  });
-  next();
-});
+// app.use((req, res, next) => {
+//   logger.info({
+//     method: req.method,
+//     url: req.url,
+//   });
+//   next();
+// });
 
 // prom-client metrics 
-app.use((req, res, next) => {
-  requestCounter.inc();
-  next();
-});
+// app.use((req, res, next) => {
+//   requestCounter.inc();
+//   next();
+// });
 app.use("/", router);
 
 // metrica endpoint 
-app.get("/metrics", async (req, res) => {
-  res.set("Content-Type", client.register.contentType);
-  res.end(await client.register.metrics());
-});
+// app.get("/metrics", async (req, res) => {
+//   res.set("Content-Type", client.register.contentType);
+//   res.end(await client.register.metrics());
+// });
 
 
 // checks
-logger.info('Server started');
+// logger.info('Server started');
 // logger.error({ err }, 'Something failed');
 
 
