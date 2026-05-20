@@ -9,6 +9,7 @@ export interface Data{
 
 export const userQuery={
     login:async(data:Data)=>{
+        console.log("Logging in with data:", data);
         return await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/signin`,
            data,{
             withCredentials:true

@@ -3,7 +3,11 @@
 import { useState } from "react"
 import { Home, User, Bell, Shield } from "lucide-react"
 
+
+
 export default function SettingsPage() {
+  // 1. Clean out the old FormState type, we don't need it anymore!
+
   const [activeTab, setActiveTab] = useState("profile")
 
   const [form, setForm] = useState({
@@ -14,11 +18,17 @@ export default function SettingsPage() {
     password: "",
   })
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target
+  // 2. Use a robust ChangeEvent type that covers both inputs and textareas safely
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+
+    // Check if it's a checkbox using an "in" guard to safely read the 'checked' property
+    const isCheckbox = type === "checkbox" && "checked" in e.target
+    const finalValue = isCheckbox ? (e.target as HTMLInputElement).checked : value
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: finalValue,
     }))
   }
 
@@ -79,7 +89,7 @@ export default function SettingsPage() {
               name="bio"
               placeholder="Bio"
               value={form.bio}
-              onChange={handleChange}
+              onChange={(e)=>handleChange(e)}
               className="w-full p-3 rounded-xl bg-white/10 border border-white/20"
             />
           </div>
