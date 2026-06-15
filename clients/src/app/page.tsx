@@ -1,6 +1,7 @@
 
 import React from "react"
-import Dashboard from "./account/dashboard/page"
+
+import Login from "./account/login/page"
 
 
 export default function App(){
@@ -9,7 +10,7 @@ export default function App(){
     <>
    
          
-       <Dashboard/>
+       <Login/>
     
     </>
   )
