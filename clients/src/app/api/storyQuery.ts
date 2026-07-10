@@ -11,7 +11,7 @@ export  const storyQuery={
    },
 
    fetchStory:async(id:string,token:string)=>{
-      console.log("id backend going",id)
+      
       return await axiosInstance.get("/story-api/mystory",{params:{id},
        headers:{
          "content-type":"application/json",

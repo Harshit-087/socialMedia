@@ -48,7 +48,7 @@ export default function Posts({userid}:{userid:string}) {
       const res = await postQuery.showPosts(userIdFromKey,token);
 
        toast.success(res.data.msg)
-       console.log("posts",res.data)
+     
       return res.data?.data;
     },
     refetchOnWindowFocus:false, 
