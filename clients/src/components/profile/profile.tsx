@@ -34,7 +34,7 @@ export default function ProfileComponent({
       if(!id || !token) return;
       const res = await userQuery.fetchProfile(id,token)
       //  toast.success(res.data.msg)
-      console.log("profile",res.data)
+      // console.log("profile",res.data)
       return res.data;
     }
   })

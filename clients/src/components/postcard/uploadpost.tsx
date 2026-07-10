@@ -53,12 +53,12 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
        e.preventDefault()
        const value=(e.currentTarget as HTMLFormElement).pictures as HTMLInputElement;
        const file = value.files?.[0];
-       console.log("value target",value)
+       
        if(!file) return;
    
 
       const caption = (e.currentTarget as HTMLFormElement).caption as HTMLTextAreaElement;
-      console.log("caption",caption.value)
+     
 
         // the broswer automatically sets the correct headers for multipart/form-data including the boundary
         // file is send {} to backend , if direclty sent it will be sent as [object object]
@@ -78,7 +78,7 @@ export default function UploadPost({onClose}:{onClose:()=>void}){
    const handleSubmitVideo=async(e:React.FormEvent)=>{
         e.preventDefault();
         const value= (e.currentTarget as HTMLFormElement).video as HTMLInputElement;
-        console.log("video",value.files)
+       
         const files = value.files?.[0];
         if(!files) return ;
 
